@@ -1,25 +1,13 @@
 # coding:utf-8
+
+# import qdarktheme
 import sqlite3
 
 # import qdarktheme
 from PyQt6.QtCore import Qt, QPropertyAnimation
-from PyQt6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QWidget, QListWidgetItem
-from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit)
-import os
-import sqlite3
-
-# import qdarktheme
-from PyQt6.QtCore import Qt, QUrl, QTimer, QSize, QPropertyAnimation
-from PyQt6.QtGui import QIcon, QFont, QPixmap, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer
-from PyQt6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QSizePolicy, \
-    QSpacerItem, QFileDialog, QWidget, QListWidgetItem, QFrame
-from mutagen.id3 import ID3
-from mutagen.mp3 import MP3
-from qfluentwidgets import (Slider, ScrollArea, LargeTitleLabel, ListWidget, LineEdit, PushButton)
-import Cards
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem
+from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 
 
 # Database helper functions
