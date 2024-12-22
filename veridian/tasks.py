@@ -67,26 +67,28 @@ class HabitsWidget(QWidget):
         super().__init__()
         self.setWindowTitle("Veridian")
         self.setMinimumSize(800, 600)
-        self.setStyleSheet("bakckground-color : #000000")
+        self.setStyleSheet("background-color: #202020;")  # Dark background
         self.setObjectName("habits-page")
 
         # Set gradient background for the entire app
         palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())  # Adjust gradient to span the entire height
-        gradient.setColorAt(0.0, QColor("#1c1c1c"))  # Top gradient color
-        gradient.setColorAt(1.0, QColor("#383838"))  # Bottom gradient color
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))  # Top gradient color
+        gradient.setColorAt(1.0, QColor("#202020"))  # Bottom gradient color
         palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
         # Main layout
         self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(25, 25, 25, 25)
 
         # Title
         self.title_label = LargeTitleLabel()
         self.title_label.setText("Tasks")
-        self.title_label.setFont(QFont("Segoe UI Bold", 30))
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.title_label.setFont(QFont("Segoe UI", 32, QFont.Weight.Bold))  # Larger title font
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setStyleSheet("color: #ffffff;")
         self.main_layout.addWidget(self.title_label)
 
         # Habit Stats
@@ -95,15 +97,41 @@ class HabitsWidget(QWidget):
 
         # Habit List
         self.habit_list = ListWidget()
+        self.habit_list.setStyleSheet("background-color: #202020; color: #ffffff; border-radius: 8px;")
+        self.habit_list.setSpacing(10)
         self.main_layout.addWidget(self.habit_list)
 
         # Add Habit Section
         self.habit_input = LineEdit()
         self.habit_input.setPlaceholderText("Enter a new task...")
+        self.habit_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #333333;
+                color: #ffffff;
+                border: 2px solid #444444;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #ffffff;
+            }
+        """)
         self.main_layout.addWidget(self.habit_input)
 
         self.add_habit_button = PushButton()
         self.add_habit_button.setText("Add Task")
+        self.add_habit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #6200ea;
+                color: #ffffff;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #3700b3;
+            }
+        """)
         self.add_habit_button.clicked.connect(self.add_habit)
         self.main_layout.addWidget(self.add_habit_button)
 
@@ -113,9 +141,6 @@ class HabitsWidget(QWidget):
     def load_habits(self):
         habits = fetch_habits()
         self.habit_list.clear()
-
-        total_habits = len(habits)
-        completed_streaks = sum(habit[2] for habit in habits)
 
         for habit in habits:
             self.add_habit_to_list(habit[0], habit[1], habit[2])
@@ -130,6 +155,8 @@ class HabitsWidget(QWidget):
     def add_habit_to_list(self, habit_id, name, streak):
         # Create a habit widget
         habit_item = QListWidgetItem(f"{name} - Streak: {streak}")
+        habit_item.setForeground(QColor("#ffffff"))
+        habit_item.setFont(QFont("Segoe UI", 14))
         self.habit_list.addItem(habit_item)
 
         # Animate new habit
