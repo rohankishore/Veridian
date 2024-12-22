@@ -67,17 +67,10 @@ class HabitsWidget(QWidget):
         super().__init__()
         self.setWindowTitle("Veridian")
         self.setMinimumSize(800, 600)
-        self.setStyleSheet("background-color: #202020;")  # Dark background
         self.setObjectName("habits-page")
 
-        # Set gradient background for the entire app
-        palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.0, QColor("#202020"))  # Top gradient color
-        gradient.setColorAt(1.0, QColor("#202020"))  # Bottom gradient color
-        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
-        self.setPalette(palette)
-        self.setAutoFillBackground(True)
+        # Set background color directly
+        self.setStyleSheet("background-color: #202020;")
 
         # Main layout
         self.main_layout = QVBoxLayout(self)
