@@ -70,7 +70,13 @@ class HabitsWidget(QWidget):
         self.setObjectName("habits-page")
 
         # Set background color directly
-        self.setStyleSheet("background-color: #202020;")
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())  # Adjust gradient to span the entire height
+        gradient.setColorAt(0.0, QColor("#202020"))  # Top gradient color (darker shade)
+        gradient.setColorAt(1.0, QColor("#202020"))  # Bottom gradient color (slightly lighter shade)
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
 
         # Main layout
         self.main_layout = QVBoxLayout(self)
@@ -79,9 +85,14 @@ class HabitsWidget(QWidget):
         # Title
         self.title_label = LargeTitleLabel()
         self.title_label.setText("Tasks")
-        self.title_label.setFont(QFont("Segoe UI", 32, QFont.Weight.Bold))  # Larger title font
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("color: #ffffff;")
+        self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))  # Larger title font
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.title_label.setStyleSheet("""
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        """)
         self.main_layout.addWidget(self.title_label)
 
         # Habit Stats
