@@ -126,7 +126,7 @@ class HabitsWidget(QWidget):
         self.add_habit_button.setText("Add Task")
         self.add_habit_button.setStyleSheet("""
             QPushButton {
-                background-color: #6200ea;
+                background-color: #68E95C;
                 color: #ffffff;
                 border-radius: 8px;
                 padding: 10px;
@@ -147,7 +147,7 @@ class HabitsWidget(QWidget):
         self.habit_list.clear()
 
         for habit in habits:
-            self.add_habit_to_list(habit[0], habit[1], habit[2])
+            self.add_habit_to_list(habit[0], habit[1])
 
     def add_habit(self):
         habit_name = self.habit_input.text().strip()
@@ -156,9 +156,9 @@ class HabitsWidget(QWidget):
             self.habit_input.clear()
             self.load_habits()
 
-    def add_habit_to_list(self, habit_id, name, streak):
+    def add_habit_to_list(self, habit_id, name):
         # Create a habit widget
-        habit_item = QListWidgetItem(f"{name} - Streak: {streak}")
+        habit_item = QListWidgetItem(f"{name}")
         habit_item.setForeground(QColor("#ffffff"))
         habit_item.setFont(QFont("Segoe UI", 14))
         self.habit_list.addItem(habit_item)
