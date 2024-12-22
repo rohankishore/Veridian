@@ -6,7 +6,7 @@ import sqlite3
 # import qdarktheme
 from PyQt6.QtCore import Qt, QPropertyAnimation
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel
 from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 
 
@@ -18,7 +18,8 @@ def initialize_database():
         CREATE TABLE IF NOT EXISTS habits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            streak INTEGER DEFAULT 0
+            streak INTEGER DEFAULT 0,
+            completed INTEGER DEFAULT 0
         )
     """)
     connection.commit()
@@ -28,26 +29,58 @@ def initialize_database():
 def fetch_habits():
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT id, name, streak FROM habits")
+    cursor.execute("SELECT id, name, streak, completed FROM habits")
     habits = cursor.fetchall()
     connection.close()
     return habits
 
 
-def add_habit_to_db(name):
+def toggle_habit_completion(habit_id, completed):
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
+    new_status = 1 if not completed else 0
+    cursor.execute("UPDATE habits SET completed = ? WHERE id = ?", (new_status, habit_id))
     connection.commit()
     connection.close()
 
 
-def update_habit_streak_in_db(habit_id, new_streak):
-    connection = sqlite3.connect("resources/data/habits.db")
-    cursor = connection.cursor()
-    cursor.execute("UPDATE habits SET streak = ? WHERE id = ?", (new_streak, habit_id))
-    connection.commit()
-    connection.close()
+class HabitItemWidget(QWidget):
+    def __init__(self, habit_id, name, completed, toggle_completion_callback):
+        super().__init__()
+        self.habit_id = habit_id
+        self.completed = completed
+        self.toggle_completion_callback = toggle_completion_callback
+
+        # Layout
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+
+        # Habit Name Label
+        self.name_label = QLabel(name)
+        self.name_label.setStyleSheet(f"color: {'#68E95C' if completed else '#ffffff'}; font-size: 16px;")
+        layout.addWidget(self.name_label)
+
+        # Tick Button
+        self.tick_button = PushButton("✔")
+        self.tick_button.setFixedSize(30, 30)
+        self.tick_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {'#68E95C' if completed else '#333333'};
+                color: #ffffff;
+                border-radius: 5px;
+                font-size: 14px;
+            }}
+            QPushButton:hover {{
+                background-color: #444444;
+            }}
+        """)
+        self.tick_button.clicked.connect(self.toggle_completion)
+        layout.addWidget(self.tick_button)
+
+    def toggle_completion(self):
+        self.completed = not self.completed
+        self.toggle_completion_callback(self.habit_id, self.completed)
 
 
 class HabitsWidget(QWidget):
@@ -57,35 +90,25 @@ class HabitsWidget(QWidget):
         self.setMinimumSize(800, 600)
         self.setObjectName("habits-page")
 
-        # Set background color directly
+        # Gradient Background
         palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())  # Adjust gradient to span the entire height
-        gradient.setColorAt(0.0, QColor("#202020"))  # Top gradient color (darker shade)
-        gradient.setColorAt(1.0, QColor("#202020"))  # Bottom gradient color (slightly lighter shade)
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
         palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        # Main layout
+        # Main Layout
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(25, 25, 25, 25)
 
         # Title
         self.title_label = LargeTitleLabel()
         self.title_label.setText("Tasks")
-        self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))  # Larger title font
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        self.title_label.setStyleSheet("""
-            color: #ffffff;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-        """)
+        self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))
+        self.title_label.setStyleSheet("color: #ffffff; margin-bottom: 20px;")
         self.main_layout.addWidget(self.title_label)
-
-        # Habit Stats
-        self.stats_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.stats_layout)
 
         # Habit List
         self.habit_list = ListWidget()
@@ -135,32 +158,29 @@ class HabitsWidget(QWidget):
         self.habit_list.clear()
 
         for habit in habits:
-            self.add_habit_to_list(habit[0], habit[1])
+            self.add_habit_to_list(habit[0], habit[1], habit[3])
+
+    def add_habit_to_db(self, name):
+        connection = sqlite3.connect("resources/data/habits.db")
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
+        connection.commit()
+        connection.close()
 
     def add_habit(self):
         habit_name = self.habit_input.text().strip()
         if habit_name:
-            add_habit_to_db(habit_name)
+            self.add_habit_to_db(habit_name)
             self.habit_input.clear()
             self.load_habits()
 
-    def add_habit_to_list(self, habit_id, name):
-        # Create a habit widget
-        habit_item = QListWidgetItem(f"{name}")
-        habit_item.setForeground(QColor("#ffffff"))
-        habit_item.setFont(QFont("Segoe UI", 14))
+    def add_habit_to_list(self, habit_id, name, completed):
+        habit_widget = HabitItemWidget(habit_id, name, completed, self.toggle_habit_completion)
+        habit_item = QListWidgetItem()
+        habit_item.setSizeHint(habit_widget.sizeHint())
         self.habit_list.addItem(habit_item)
+        self.habit_list.setItemWidget(habit_item, habit_widget)
 
-        # Animate new habit
-        self.animate_habit(habit_item)
-
-    def animate_habit(self, habit_item):
-        # Example animation for habit widget (fade-in effect)
-        habit_widget = self.habit_list.itemWidget(habit_item)
-        if not habit_widget:
-            return
-        animation = QPropertyAnimation(habit_widget, b"opacity")
-        animation.setDuration(500)
-        animation.setStartValue(0.0)
-        animation.setEndValue(1.0)
-        animation.start()
+    def toggle_habit_completion(self, habit_id, completed):
+        toggle_habit_completion(habit_id, completed)
+        self.load_habits()
