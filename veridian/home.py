@@ -168,7 +168,7 @@ class DashboardWidget(QWidget):
         pending_tasks = total_tasks - completed_tasks
 
         # Data for the pie chart
-        labels = ["Completed Tasks", "Pending Tasks"]
+        labels = ["", ""]
         sizes = [completed_tasks, max(pending_tasks, 0)]  # Ensure non-negative values
         colors = ["#d33429", "#609d58"]
 
