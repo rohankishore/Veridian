@@ -1,24 +1,16 @@
 # coding:utf-8
-import json
-import os
 import sqlite3
-import sys
 
-from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer
 # import qdarktheme
-from PyQt6.QtCore import Qt, pyqtSignal, QEasingCurve, QUrl, QTimer, QSize
-from PyQt6.QtGui import QIcon, QDesktopServices, QFont, QPixmap
-from PyQt6.QtWidgets import QApplication, QLabel, QHBoxLayout, QVBoxLayout, QFrame, QPushButton, QSizePolicy, \
-    QSpacerItem, QFileDialog, QSlider, QWidget
-from mutagen.id3 import ID3
-from mutagen.mp3 import MP3
+from PyQt6.QtCore import Qt, pyqtSignal, QEasingCurve, QUrl
+from PyQt6.QtGui import QIcon, QDesktopServices
+from PyQt6.QtWidgets import QLabel, QHBoxLayout, QFrame
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import (NavigationInterface, NavigationItemPosition, MessageBox,
                             isDarkTheme, setTheme, Theme,
-                            PopUpAniStackedWidget, setThemeColor, Slider)
+                            PopUpAniStackedWidget, setThemeColor)
 from qframelesswindow import FramelessWindow, TitleBar
 
-import Cards
 import home
 import tasks
 
