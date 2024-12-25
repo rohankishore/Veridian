@@ -168,19 +168,34 @@ class DashboardWidget(QWidget):
         pending_tasks = total_tasks - completed_tasks
 
         # Data for the pie chart
-        labels = ["", ""]
+        labels = ["Completed", "Pending"]
         sizes = [completed_tasks, max(pending_tasks, 0)]  # Ensure non-negative values
         colors = ["#d33429", "#609d58"]
 
         self.ax.clear()  # Clear the plot before redrawing
 
-        wedges, texts, autotexts = self.ax.pie(
-            sizes,
-            labels=labels,
-            autopct="%1.1f%%",
-            startangle=90,
-            colors=colors,
-            textprops={"color": "white", "fontsize": 14},
-        )
-        self.ax.set_title("", color="#f5f5f5", fontsize=18, pad=20)
+        if total_tasks == 0:
+            # Handle the case when there are no tasks
+            self.ax.text(
+                0.5,
+                0.5,
+                "No tasks available",
+                horizontalalignment="center",
+                verticalalignment="center",
+                fontsize=16,
+                color="white",
+                transform=self.ax.transAxes,
+            )
+        else:
+            # Plot the pie chart
+            wedges, texts, autotexts = self.ax.pie(
+                sizes,
+                labels=labels,
+                autopct="%1.1f%%",
+                startangle=90,
+                colors=colors,
+                textprops={"color": "white", "fontsize": 14},
+            )
+            self.ax.set_title("Task Completion", color="#f5f5f5", fontsize=18, pad=20)
+
         self.canvas.draw()
