@@ -6,7 +6,7 @@ import sqlite3
 # import qdarktheme
 from PyQt6.QtCore import Qt, QPropertyAnimation
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
 from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 
 
@@ -137,6 +137,8 @@ class HabitsWidget(QWidget):
         self.habit_list = ListWidget()
         self.habit_list.setStyleSheet("background-color: #202020; color: #ffffff; border-radius: 8px;")
         self.habit_list.setSpacing(10)
+        self.habit_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.habit_list.customContextMenuRequested.connect(self.show_context_menu)
         self.main_layout.addWidget(self.habit_list)
 
         # Add Habit Section
@@ -177,16 +179,16 @@ class HabitsWidget(QWidget):
         self.load_habits()
 
     def load_habits(self):
-        habits = fetch_habits()  # Fetch updated tasks
-        self.habit_list.clear()  # Clear the list first
+        habits = fetch_habits()
+        self.habit_list.clear()
 
         for habit in habits:
-            self.add_habit_to_list(habit[0], habit[1], habit[3])  # Load each habit
+            self.add_habit_to_list(habit[0], habit[1], habit[3])
 
     def add_habit_to_db(self, name):
         connection = sqlite3.connect("resources/data/habits.db")
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO habits (name, completed) VALUES (?, ?)", (name, 0))
+        cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
         connection.commit()
         connection.close()
 
@@ -206,5 +208,27 @@ class HabitsWidget(QWidget):
 
     def toggle_habit_completion(self, habit_id, completed):
         toggle_habit_completion(habit_id, completed)
-        # Refresh the list to reflect the changes
+        self.load_habits()
+
+    def show_context_menu(self, position):
+        # Get the habit under the cursor
+        item = self.habit_list.itemAt(position)
+        if not item:
+            return
+
+        habit_widget = self.habit_list.itemWidget(item)
+        if not habit_widget:
+            return
+
+        # Create the context menu
+        menu = QMenu(self)
+        delete_action = menu.addAction("Delete Task")
+
+        # Handle the delete action
+        action = menu.exec(self.habit_list.mapToGlobal(position))
+        if action == delete_action:
+            self.delete_habit(habit_widget.habit_id)
+
+    def delete_habit(self, habit_id):
+        delete_habit_from_db(habit_id)
         self.load_habits()
