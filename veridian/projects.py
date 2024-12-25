@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QStackedWidget, QVBoxLayout, QWidget
 from projects_widget import ProjectsWidget
 from subjects_widget import SubjectsWidget
-from chapters_widget import ChaptersWidget
+from veridian.chapters_widget import ChaptersWidget
 
 
 class MainWidget(QWidget):
