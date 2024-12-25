@@ -164,7 +164,7 @@ class Window(FramelessWindow):
         setTheme(Theme.DARK)
 
         # change the theme color
-        # setThemeColor(theme_color)
+        setThemeColor("#68E95C")
 
         self.hBoxLayout = QHBoxLayout(self)
         self.navigationBar = NavigationInterface(self)
