@@ -122,7 +122,10 @@ class ChaptersWidget(QWidget):
         """Add a new chapter."""
         chapter_name = self.chapter_input.text().strip()
         if chapter_name:
-            add_chapter_to_db(self.subject_id, chapter_name)
+            try:
+                add_chapter_to_db(self.subject_id, chapter_name)
+            except Exception as e:
+                print(f"Error adding chapter: {e}")
             self.chapter_input.clear()
             self.load_chapters()
 

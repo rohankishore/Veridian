@@ -66,7 +66,7 @@ import sqlite3
 
 def fetch_chapters(subject_id):
     """Fetch all chapters for a given subject."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         SELECT id, name, is_complete FROM chapters WHERE subject_id = ?
@@ -77,7 +77,7 @@ def fetch_chapters(subject_id):
 
 def add_chapter_to_db(subject_id, name):
     """Add a chapter to the database."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         INSERT INTO chapters (subject_id, name) VALUES (?, ?)
@@ -87,7 +87,7 @@ def add_chapter_to_db(subject_id, name):
 
 def update_chapter_completion(chapter_id, is_complete):
     """Toggle completion status of a chapter."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         UPDATE chapters SET is_complete = ? WHERE id = ?
@@ -97,7 +97,7 @@ def update_chapter_completion(chapter_id, is_complete):
 
 def fetch_subtopics(chapter_id):
     """Fetch all subtopics for a given chapter."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         SELECT id, name, is_complete FROM subtopics WHERE chapter_id = ?
@@ -108,7 +108,7 @@ def fetch_subtopics(chapter_id):
 
 def add_subtopic_to_db(chapter_id, name):
     """Add a subtopic to the database."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         INSERT INTO subtopics (chapter_id, name) VALUES (?, ?)
@@ -118,7 +118,7 @@ def add_subtopic_to_db(chapter_id, name):
 
 def update_subtopic_completion(subtopic_id, is_complete):
     """Toggle completion status of a subtopic."""
-    connection = sqlite3.connect("study.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("""
         UPDATE subtopics SET is_complete = ? WHERE id = ?
