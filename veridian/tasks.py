@@ -25,12 +25,14 @@ def initialize_database():
     connection.commit()
     connection.close()
 
+
 def delete_task_from_db(habit_id):
     connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
     connection.commit()
     connection.close()
+
 
 def fetch_tasks():
     connection = sqlite3.connect("resources/data/tasks.db")
@@ -58,6 +60,7 @@ def toggle_completion(self):
             background-color: #444444;
         }}
     """)
+
 
 def toggle_task_completion(habit_id, completed):
     connection = sqlite3.connect("resources/data/tasks.db")
