@@ -158,6 +158,7 @@ class Window(FramelessWindow):
         self.setResizeEnabled(False)
 
         initialize_database()
+        initialize_study_db()
 
         # use dark theme mode
         setTheme(Theme.DARK)
