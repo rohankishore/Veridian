@@ -132,7 +132,7 @@ class DashboardWidget(QWidget):
 
         self.main_layout.addLayout(self.graph_layout)
 
-        # Load statistics and plot the pie chart
+        # Load data and update UI
         self.load_statistics()
         self.plot_pie_chart()
 
