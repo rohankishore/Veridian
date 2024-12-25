@@ -25,6 +25,12 @@ def initialize_database():
     connection.commit()
     connection.close()
 
+def delete_habit_from_db(habit_id):
+    connection = sqlite3.connect("resources/data/habits.db")
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
+    connection.commit()
+    connection.close()
 
 def fetch_habits():
     connection = sqlite3.connect("resources/data/habits.db")
