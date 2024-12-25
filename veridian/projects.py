@@ -2,7 +2,7 @@ import sqlite3
 
 
 def initialize_study_db():
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
 
     # Create tables
@@ -33,7 +33,7 @@ def initialize_study_db():
 
 
 def add_project(name):
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO projects (name) VALUES (?)", (name,))
     connection.commit()
@@ -41,7 +41,7 @@ def add_project(name):
 
 
 def fetch_projects():
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM projects")
     projects = cursor.fetchall()
@@ -50,7 +50,7 @@ def fetch_projects():
 
 
 def add_subject(project_id, name):
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO subjects (project_id, name) VALUES (?, ?)", (project_id, name))
     connection.commit()
@@ -58,7 +58,7 @@ def add_subject(project_id, name):
 
 
 def fetch_subjects(project_id):
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM subjects WHERE project_id = ?", (project_id,))
     subjects = cursor.fetchall()
@@ -67,7 +67,7 @@ def fetch_subjects(project_id):
 
 
 def add_chapter(subject_id, name):
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO chapters (subject_id, name) VALUES (?, ?)", (subject_id, name))
     connection.commit()
@@ -75,7 +75,7 @@ def add_chapter(subject_id, name):
 
 
 def fetch_chapters(subject_id):
-    connection = sqlite3.connect("study_projects.db")
+    connection = sqlite3.connect("resources/data/study_projects.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM chapters WHERE subject_id = ?", (subject_id,))
     chapters = cursor.fetchall()
