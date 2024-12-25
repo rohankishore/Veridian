@@ -42,13 +42,13 @@ class SubjectsWidget(QWidget):
         self.subject_input.setPlaceholderText("Enter a subject name...")
         self.input_layout.addWidget(self.subject_input)
 
-        self.add_button = QPushButton("Add Subject")
+        self.add_button = PushButton("Add Subject")
         self.add_button.clicked.connect(self.add_subject)
         self.input_layout.addWidget(self.add_button)
         self.layout.addLayout(self.input_layout)
 
         # List of subjects
-        self.subjects_list = QListWidget()
+        self.subjects_list = ListWidget()
         self.subjects_list.itemClicked.connect(self.open_subject)
         self.layout.addWidget(self.subjects_list)
 
