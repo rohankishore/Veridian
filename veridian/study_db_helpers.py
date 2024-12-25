@@ -1,17 +1,119 @@
-def fetch_projects():
-    return [(1, "Physics"), (2, "Mathematics")]
+import sqlite3
+import os
 
-def fetch_subjects(project_id):
-    return [(1, "Kinematics"), (2, "Dynamics")]
+# Path to the database
+DB_PATH = "resources/data/tasks.db"
 
-def fetch_chapters(subject_id):
-    return [(1, "Newton's Laws"), (2, "Energy")]
+
+def initialize_db():
+    """Initialize the database and create tables if they don't exist."""
+    if not os.path.exists("resources/data"):
+        os.makedirs("resources/data")
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Create Projects table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+    """)
+
+    # Create Subjects table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Subjects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            project_id INTEGER NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES Projects (id) ON DELETE CASCADE
+        )
+    """)
+
+    # Create Chapters table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Chapters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            FOREIGN KEY (subject_id) REFERENCES Subjects (id) ON DELETE CASCADE
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
 
 def add_project(name):
-    pass  # Add to database
+    """Add a new project to the database."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("INSERT INTO Projects (name) VALUES (?)", (name,))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        print(f"Project '{name}' already exists.")
+    finally:
+        conn.close()
+
+
+def fetch_projects():
+    """Fetch all projects from the database."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name FROM Projects ORDER BY id")
+    projects = cursor.fetchall()
+
+    conn.close()
+    return projects
+
 
 def add_subject(project_id, name):
-    pass  # Add to database
+    """Add a new subject to a specific project."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO Subjects (name, project_id) VALUES (?, ?)", (name, project_id))
+    conn.commit()
+    conn.close()
+
+
+def fetch_subjects(project_id):
+    """Fetch all subjects for a specific project."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name FROM Subjects WHERE project_id = ? ORDER BY id", (project_id,))
+    subjects = cursor.fetchall()
+
+    conn.close()
+    return subjects
+
 
 def add_chapter(subject_id, name):
-    pass  # Add to database
+    """Add a new chapter to a specific subject."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("INSERT INTO Chapters (name, subject_id) VALUES (?, ?)", (name, subject_id))
+    conn.commit()
+    conn.close()
+
+
+def fetch_chapters(subject_id):
+    """Fetch all chapters for a specific subject."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, name FROM Chapters WHERE subject_id = ? ORDER BY id", (subject_id,))
+    chapters = cursor.fetchall()
+
+    conn.close()
+    return chapters
+
+
+# Initialize the database when the script is run
+initialize_db()

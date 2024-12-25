@@ -1,4 +1,5 @@
 # coding:utf-8
+import os
 import sqlite3
 
 # import qdarktheme
@@ -51,34 +52,46 @@ def initialize_database():
     connection.close()
 
 def initialize_study_db():
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
 
-    # Create tables
+    DB_PATH = "resources/data/study_projects.db"
+
+    """Initialize the database and create tables if they don't exist."""
+    if not os.path.exists("resources/data"):
+        os.makedirs("resources/data")
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Create Projects table
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS projects (
+        CREATE TABLE IF NOT EXISTS Projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
+            name TEXT NOT NULL UNIQUE
         )
     """)
+
+    # Create Subjects table
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS subjects (
+        CREATE TABLE IF NOT EXISTS Subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
             project_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            FOREIGN KEY (project_id) REFERENCES Projects (id) ON DELETE CASCADE
         )
     """)
+
+    # Create Chapters table
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chapters (
+        CREATE TABLE IF NOT EXISTS Chapters (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            subject_id INTEGER NOT NULL,
             name TEXT NOT NULL,
-            FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+            subject_id INTEGER NOT NULL,
+            FOREIGN KEY (subject_id) REFERENCES Subjects (id) ON DELETE CASCADE
         )
     """)
-    connection.commit()
-    connection.close()
+
+    conn.commit()
+    conn.close()
 
 
 class StackedWidget(QFrame):
