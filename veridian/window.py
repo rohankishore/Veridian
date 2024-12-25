@@ -167,7 +167,7 @@ class Window(FramelessWindow):
         #self.musicInterface = Player.MusicPlayerWidget()
         self.homeInterface = home.DashboardWidget()
         self.habitsInterface = tasks.TasksWidget()
-        #self.projectInterface = projects.SubjectsWidget()
+        self.projectInterface = projects.MainWidget()
         # self.captionInterface = get_captions.CaptionWidget()
         # self.settingsInterface = settings.SettingsPage()
 
@@ -189,6 +189,7 @@ class Window(FramelessWindow):
     def initNavigation(self):
         self.addSubInterface(self.homeInterface, FIF.HOME, 'Dashboard', selectedIcon=FIF.HOME)
         self.addSubInterface(self.habitsInterface, FIF.ACCEPT, 'Tasks', selectedIcon=FIF.ACCEPT_MEDIUM)
+        self.addSubInterface(self.projectInterface, FIF.BOOK_SHELF, 'Projects', selectedIcon=FIF.BOOK_SHELF)
 
         self.navigationBar.addItem(
             routeKey='About',

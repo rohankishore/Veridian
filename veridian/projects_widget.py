@@ -1,5 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
+from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem, QHBoxLayout
 from study_db_helpers import add_project, fetch_projects
 
@@ -18,23 +22,31 @@ class ProjectsWidget(QWidget):
 
         # Title
         self.title_label = QLabel("Projects")
-        self.title_label.setFont(QFont("Poppins", 24, QFont.Weight.Bold))
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.layout.addWidget(self.title_label)
+
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
 
         # Input for adding a project
         self.input_layout = QHBoxLayout()
-        self.project_input = QLineEdit()
+        self.project_input = LineEdit()
         self.project_input.setPlaceholderText("Enter a project name...")
         self.input_layout.addWidget(self.project_input)
 
-        self.add_button = QPushButton("Add Project")
+        self.add_button = PushButton("Add Project")
         self.add_button.clicked.connect(self.add_project)
         self.input_layout.addWidget(self.add_button)
         self.layout.addLayout(self.input_layout)
 
         # List of projects
-        self.projects_list = QListWidget()
+        self.projects_list = ListWidget()
         self.projects_list.itemClicked.connect(self.open_project)
         self.layout.addWidget(self.projects_list)
 

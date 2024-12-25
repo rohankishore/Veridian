@@ -1,4 +1,8 @@
 from PyQt6.QtWidgets import QStackedWidget, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
+from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 from projects_widget import ProjectsWidget
 from subjects_widget import SubjectsWidget
 from veridian.chapters_widget import ChaptersWidget
@@ -7,8 +11,16 @@ from veridian.chapters_widget import ChaptersWidget
 class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Study Tracker")
-        self.setMinimumSize(800, 600)
+       # self.setMinimumSize(800, 600)
+        self.setObjectName("Projects")
+
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
 
         # Stack to manage widgets dynamically
         self.stack = QStackedWidget(self)

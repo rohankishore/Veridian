@@ -1,5 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
+from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem, QHBoxLayout
 from study_db_helpers import add_chapter, fetch_chapters
 
@@ -17,10 +21,18 @@ class ChaptersWidget(QWidget):
 
         self.layout = QVBoxLayout(self)
 
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
+
         # Title
         self.title_label = QLabel("Chapters")
-        self.title_label.setFont(QFont("Poppins", 24, QFont.Weight.Bold))
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.layout.addWidget(self.title_label)
 
         # Input for adding a chapter
@@ -35,11 +47,23 @@ class ChaptersWidget(QWidget):
         self.layout.addLayout(self.input_layout)
 
         # List of chapters
-        self.chapters_list = QListWidget()
+        self.chapters_list = ListWidget()
         self.layout.addWidget(self.chapters_list)
 
         # Back button
-        self.back_button = QPushButton("Back to Subjects")
+        self.back_button = PushButton("Back to Subjects")
+        self.back_button.setStyleSheet("""
+            QPushButton {
+                background-color: #68E95C;
+                color: #ffffff;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #51b547;
+            }
+        """)
         self.back_button.clicked.connect(self.back_to_subjects_callback)
         self.layout.addWidget(self.back_button)
 
