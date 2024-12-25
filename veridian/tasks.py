@@ -35,11 +35,28 @@ def fetch_habits():
     return habits
 
 
+def toggle_completion(self):
+    self.completed = not self.completed
+    self.toggle_completion_callback(self.habit_id, self.completed)
+
+    # Update UI appearance
+    self.name_label.setStyleSheet(f"color: {'#68E95C' if self.completed else '#ffffff'}; font-size: 16px;")
+    self.tick_button.setStyleSheet(f"""
+        QPushButton {{
+            background-color: {'#68E95C' if self.completed else '#333333'};
+            color: #ffffff;
+            border-radius: 5px;
+            font-size: 14px;
+        }}
+        QPushButton:hover {{
+            background-color: #444444;
+        }}
+    """)
+
 def toggle_habit_completion(habit_id, completed):
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
-    new_status = 1 if not completed else 0
-    cursor.execute("UPDATE habits SET completed = ? WHERE id = ?", (new_status, habit_id))
+    cursor.execute("UPDATE habits SET completed = ? WHERE id = ?", (1 if completed else 0, habit_id))
     connection.commit()
     connection.close()
 
@@ -154,16 +171,16 @@ class HabitsWidget(QWidget):
         self.load_habits()
 
     def load_habits(self):
-        habits = fetch_habits()
-        self.habit_list.clear()
+        habits = fetch_habits()  # Fetch updated tasks
+        self.habit_list.clear()  # Clear the list first
 
         for habit in habits:
-            self.add_habit_to_list(habit[0], habit[1], habit[3])
+            self.add_habit_to_list(habit[0], habit[1], habit[3])  # Load each habit
 
     def add_habit_to_db(self, name):
         connection = sqlite3.connect("resources/data/habits.db")
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
+        cursor.execute("INSERT INTO habits (name, completed) VALUES (?, ?)", (name, 0))
         connection.commit()
         connection.close()
 
@@ -183,4 +200,5 @@ class HabitsWidget(QWidget):
 
     def toggle_habit_completion(self, habit_id, completed):
         toggle_habit_completion(habit_id, completed)
+        # Refresh the list to reflect the changes
         self.load_habits()
