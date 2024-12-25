@@ -1,9 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem
-from qfluentwidgets import ListWidget, PushButton
+from qfluentwidgets import ListWidget, PushButton, CheckBox
 
-from study_db_helpers import fetch_chapters
+from study_db_helpers import fetch_chapters, update_chapter_completion
 
 
 class ChaptersWidget(QWidget):
@@ -13,9 +13,9 @@ class ChaptersWidget(QWidget):
         self.subject_id = None
 
         self.setStyleSheet("""
-                    background-color: #202020;
-                    color: white;
-                """)
+            background-color: #202020;
+            color: white;
+        """)
 
         self.layout = QVBoxLayout(self)
 
@@ -32,17 +32,17 @@ class ChaptersWidget(QWidget):
         # Back button
         self.back_button = PushButton("Back to Subjects")
         self.back_button.setStyleSheet("""
-                    QPushButton {
-                        background-color: #68E95C;
-                        color: #ffffff;
-                        border-radius: 8px;
-                        padding: 10px;
-                        font-size: 16px;
-                    }
-                    QPushButton:hover {
-                        background-color: #51b547;
-                    }
-                """)
+            QPushButton {
+                background-color: #68E95C;
+                color: #ffffff;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #51b547;
+            }
+        """)
         self.back_button.clicked.connect(self.back_to_subjects_callback)
         self.layout.addWidget(self.back_button)
 
@@ -56,7 +56,11 @@ class ChaptersWidget(QWidget):
         """Load all chapters for the current subject."""
         print(f"Loading chapters for subject ID: {self.subject_id}")  # Debug print
         self.chapters_list.clear()  # Clear previous chapters
-        chapters = fetch_chapters(self.subject_id)  # Fetch chapters from the database
+        try:
+            chapters = fetch_chapters(self.subject_id)  # Fetch chapters from the database
+        except Exception as e:
+            print(f"Error fetching chapters: {e}")  # Debug print
+            return
 
         print(f"Fetched chapters: {chapters}")  # Debug print
 
@@ -76,6 +80,9 @@ class ChaptersWidget(QWidget):
             # Checkbox for completion
             checkbox = QCheckBox()
             checkbox.setChecked(is_complete)  # Set checkbox based on completion
+            checkbox.toggled.connect(
+                lambda checked, cid=chapter_id: self.toggle_completion(cid, checked)
+            )  # Update completion in the database
             chapter_layout.addWidget(checkbox)
 
             # Create a QWidget and set the layout for this chapter
@@ -91,3 +98,8 @@ class ChaptersWidget(QWidget):
                 print(f"Added chapter: {chapter_name} to the list.")  # Debug print
             except Exception as e:
                 print(f"Error adding chapter to list: {e}")  # Debug print
+
+    def toggle_completion(self, chapter_id, is_complete):
+        """Toggle the completion status of a chapter."""
+        print(f"Toggling completion for chapter ID={chapter_id} to {is_complete}")  # Debug print
+        update_chapter_completion(chapter_id, is_complete)  # Update the database

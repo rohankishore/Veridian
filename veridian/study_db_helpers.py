@@ -37,13 +37,20 @@ def initialize_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             subject_id INTEGER NOT NULL,
+            is_complete INTEGER DEFAULT 0, -- Add the is_complete column
             FOREIGN KEY (subject_id) REFERENCES Subjects (id) ON DELETE CASCADE
         )
     """)
 
+    # Check if `is_complete` column exists and add it if necessary
+    cursor.execute("PRAGMA table_info(Chapters)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'is_complete' not in columns:
+        cursor.execute("ALTER TABLE Chapters ADD COLUMN is_complete INTEGER DEFAULT 0")
+        print("Added 'is_complete' column to Chapters table.")
+
     conn.commit()
     conn.close()
-
 
 def calculate_subject_completion(subject_id):
     """Calculate the percentage of completed chapters in a subject."""
@@ -57,6 +64,14 @@ def calculate_subject_completion(subject_id):
 
     connection.close()
     return int((completed_chapters / total_chapters) * 100) if total_chapters > 0 else 0
+
+def update_chapter_completion(chapter_id, is_complete):
+    """Update the completion status of a chapter in the database."""
+    query = "UPDATE chapters SET is_complete = ? WHERE id = ?"
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+    cursor.execute(query, (is_complete, chapter_id))
+    connection.commit()
 
 
 def calculate_project_completion(project_id):
@@ -133,7 +148,7 @@ def add_chapter(subject_id, name):
 
 def fetch_chapters(subject_id):
     """Fetch chapters for the given subject."""
-    conn = sqlite3.connect("resources/data/tasks.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, is_complete FROM chapters WHERE subject_id = ?", (subject_id,))
     chapters = cursor.fetchall()
@@ -142,7 +157,7 @@ def fetch_chapters(subject_id):
 
 def mark_chapter_complete(chapter_id, is_complete):
     """Mark a chapter as complete or incomplete."""
-    conn = sqlite3.connect("resources/data/tasks.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("UPDATE chapters SET is_complete = ? WHERE id = ?", (1 if is_complete else 0, chapter_id))
     conn.commit()
@@ -150,7 +165,7 @@ def mark_chapter_complete(chapter_id, is_complete):
 
 def calculate_subject_completion(subject_id):
     """Calculate the completion percentage of a subject based on its chapters."""
-    conn = sqlite3.connect("resources/data/tasks.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM chapters WHERE subject_id = ? AND is_complete = 1", (subject_id,))
     completed_chapters = cursor.fetchone()[0]
@@ -165,7 +180,7 @@ def calculate_subject_completion(subject_id):
 
 def delete_project(project_id):
     """Delete a project and its associated subjects and chapters from the database."""
-    conn = sqlite3.connect("resources/data/tasks.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     # Delete all related chapters first
     cursor.execute("DELETE FROM chapters WHERE subject_id IN (SELECT id FROM subjects WHERE project_id = ?)",
