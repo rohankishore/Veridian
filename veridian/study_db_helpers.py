@@ -44,6 +44,39 @@ def initialize_db():
     conn.commit()
     conn.close()
 
+def mark_chapter_complete(chapter_id):
+    """Mark a chapter as complete."""
+    connection = sqlite3.connect("resources/data/tasks.db")
+    cursor = connection.cursor()
+    cursor.execute("UPDATE chapters SET completed = 1 WHERE id = ?", (chapter_id,))
+    connection.commit()
+    connection.close()
+
+def calculate_subject_completion(subject_id):
+    """Calculate the percentage of completed chapters in a subject."""
+    connection = sqlite3.connect("resources/data/tasks.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM chapters WHERE subject_id = ?", (subject_id,))
+    total_chapters = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM chapters WHERE subject_id = ? AND completed = 1", (subject_id,))
+    completed_chapters = cursor.fetchone()[0]
+
+    connection.close()
+    return int((completed_chapters / total_chapters) * 100) if total_chapters > 0 else 0
+
+def calculate_project_completion(project_id):
+    """Calculate the percentage of completed subjects in a project."""
+    connection = sqlite3.connect("resources/data/tasks.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT id FROM subjects WHERE project_id = ?", (project_id,))
+    subject_ids = [row[0] for row in cursor.fetchall()]
+
+    total_subjects = len(subject_ids)
+    completed_subjects = sum(1 for subject_id in subject_ids if calculate_subject_completion(subject_id) == 100)
+
+    connection.close()
+    return int((completed_subjects / total_subjects) * 100) if total_subjects > 0 else 0
 
 def add_project(name):
     """Add a new project to the database."""
