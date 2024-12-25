@@ -3,6 +3,7 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem
 from qfluentwidgets import ListWidget, PushButton, LineEdit
 from study_db_helpers import fetch_chapters, update_chapter_completion, add_chapter_to_db
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
 
 
 
@@ -59,75 +60,45 @@ class ChapterItemWidget(QWidget):
 
 
 class ChaptersWidget(QWidget):
-    def __init__(self, back_to_subjects_callback):
+    def __init__(self, show_subtopics_callback, back_to_subjects_callback):
         super().__init__()
+        self.show_subtopics_callback = show_subtopics_callback  # Callback for navigating to subtopics
         self.back_to_subjects_callback = back_to_subjects_callback
         self.subject_id = None
 
-        self.setStyleSheet("""
-            background-color: #202020;
-            color: white;
-        """)
-
         self.layout = QVBoxLayout(self)
+
+        # Gradient Background
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
 
         # Title
         self.title_label = QLabel("Chapters")
         self.title_label.setFont(QFont("Poppins", 36, QFont.Weight.DemiBold))
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.title_label.setStyleSheet("color: #ffffff; margin-bottom: 20px;")
         self.layout.addWidget(self.title_label)
 
         # List of chapters
         self.chapters_list = ListWidget()
+        self.chapters_list.itemClicked.connect(self.open_subtopics)  # Navigate on item click
         self.layout.addWidget(self.chapters_list)
 
-        # Add Chapter Section
+        # Chapter input and button
         self.chapter_input = LineEdit()
-        self.chapter_input.setPlaceholderText("Enter a new chapter...")
-        self.chapter_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #333333;
-                color: #ffffff;
-                border: 2px solid #444444;
-                border-radius: 5px;
-                padding: 5px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #ffffff;
-            }
-        """)
+        self.chapter_input.setPlaceholderText("Enter new chapter...")
         self.layout.addWidget(self.chapter_input)
 
         self.add_chapter_button = PushButton("Add Chapter")
-        self.add_chapter_button.setStyleSheet("""
-            QPushButton {
-                background-color: #68E95C;
-                color: #ffffff;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background-color: #51b547;
-            }
-        """)
         self.add_chapter_button.clicked.connect(self.add_chapter)
         self.layout.addWidget(self.add_chapter_button)
 
         # Back button
         self.back_button = PushButton("Back to Subjects")
-        self.back_button.setStyleSheet("""
-            QPushButton {
-                background-color: #68E95C;
-                color: #ffffff;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background-color: #51b547;
-            }
-        """)
         self.back_button.clicked.connect(self.back_to_subjects_callback)
         self.layout.addWidget(self.back_button)
 
@@ -137,32 +108,30 @@ class ChaptersWidget(QWidget):
         self.load_chapters()
 
     def load_chapters(self):
-        """Load all chapters for the current subject."""
-        self.chapters_list.clear()  # Clear previous chapters
-        chapters = fetch_chapters(self.subject_id)  # Fetch chapters from the database
-
+        """Load chapters for the selected subject."""
+        self.chapters_list.clear()
+        chapters = fetch_chapters(self.subject_id)
         for chapter_id, chapter_name, is_complete in chapters:
-            self.add_chapter_to_list(chapter_id, chapter_name, is_complete)
-
-    def add_chapter_to_list(self, chapter_id, name, completed):
-        chapter_widget = ChapterItemWidget(chapter_id, name, completed, self.toggle_chapter_completion)
-        chapter_item = QListWidgetItem()
-        chapter_item.setSizeHint(chapter_widget.sizeHint())
-        self.chapters_list.addItem(chapter_item)
-        self.chapters_list.setItemWidget(chapter_item, chapter_widget)
+            chapter_widget = ChapterItemWidget(chapter_id, chapter_name, is_complete, self.toggle_chapter_completion)
+            chapter_item = QListWidgetItem()
+            chapter_item.setSizeHint(chapter_widget.sizeHint())
+            self.chapters_list.addItem(chapter_item)
+            self.chapters_list.setItemWidget(chapter_item, chapter_widget)
 
     def add_chapter(self):
+        """Add a new chapter."""
         chapter_name = self.chapter_input.text().strip()
         if chapter_name:
-            try:
-                add_chapter_to_db(self.subject_id, chapter_name)
-            except Exception as e:
-                print(f"Error adding chapter: {e}")
-            # Clear the input and reload the chapters list
+            add_chapter_to_db(self.subject_id, chapter_name)
             self.chapter_input.clear()
             self.load_chapters()
 
     def toggle_chapter_completion(self, chapter_id, is_complete):
-        """Toggle the completion status of a chapter."""
-        update_chapter_completion(chapter_id, is_complete)  # Update the database
+        """Toggle completion status for a chapter."""
+        update_chapter_completion(chapter_id, is_complete)
         self.load_chapters()
+
+    def open_subtopics(self, item):
+        """Navigate to the Subtopics screen."""
+        chapter_widget = self.chapters_list.itemWidget(item)
+        self.show_subtopics_callback(chapter_widget.chapter_id, chapter_widget.name_label.text())

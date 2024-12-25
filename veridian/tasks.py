@@ -114,7 +114,7 @@ class TasksWidget(QWidget):
         super().__init__()
         self.setWindowTitle("Veridian")
         self.setMinimumSize(800, 600)
-        self.setObjectName("habits-page")
+        self.setObjectName("tasks-page")
 
         # Gradient Background
         palette = QPalette()

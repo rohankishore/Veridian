@@ -1,4 +1,3 @@
-import sqlite3
 import os
 
 # Path to the database
@@ -62,6 +61,71 @@ def add_chapter_to_db(subject_id, chapter_name):
     """, (subject_id, chapter_name))
     connection.commit()
     connection.close()
+
+import sqlite3
+
+def fetch_chapters(subject_id):
+    """Fetch all chapters for a given subject."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT id, name, is_complete FROM chapters WHERE subject_id = ?
+    """, (subject_id,))
+    chapters = cursor.fetchall()
+    connection.close()
+    return chapters
+
+def add_chapter_to_db(subject_id, name):
+    """Add a chapter to the database."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO chapters (subject_id, name) VALUES (?, ?)
+    """, (subject_id, name))
+    connection.commit()
+    connection.close()
+
+def update_chapter_completion(chapter_id, is_complete):
+    """Toggle completion status of a chapter."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE chapters SET is_complete = ? WHERE id = ?
+    """, (1 if is_complete else 0, chapter_id))
+    connection.commit()
+    connection.close()
+
+def fetch_subtopics(chapter_id):
+    """Fetch all subtopics for a given chapter."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT id, name, is_complete FROM subtopics WHERE chapter_id = ?
+    """, (chapter_id,))
+    subtopics = cursor.fetchall()
+    connection.close()
+    return subtopics
+
+def add_subtopic_to_db(chapter_id, name):
+    """Add a subtopic to the database."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO subtopics (chapter_id, name) VALUES (?, ?)
+    """, (chapter_id, name))
+    connection.commit()
+    connection.close()
+
+def update_subtopic_completion(subtopic_id, is_complete):
+    """Toggle completion status of a subtopic."""
+    connection = sqlite3.connect("study.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE subtopics SET is_complete = ? WHERE id = ?
+    """, (1 if is_complete else 0, subtopic_id))
+    connection.commit()
+    connection.close()
+
 
 def calculate_subject_completion(subject_id):
     """Calculate the percentage of completed chapters in a subject."""
