@@ -1,10 +1,8 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
-from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidgetItem, QHBoxLayout
+from qfluentwidgets import (ListWidget, LineEdit, PushButton)
+
 from study_db_helpers import add_subject, fetch_subjects
 
 
@@ -38,7 +36,7 @@ class SubjectsWidget(QWidget):
 
         # Input for adding a subject
         self.input_layout = QHBoxLayout()
-        self.subject_input = QLineEdit()
+        self.subject_input = LineEdit()
         self.subject_input.setPlaceholderText("Enter a subject name...")
         self.input_layout.addWidget(self.subject_input)
 

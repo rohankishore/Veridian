@@ -1,10 +1,8 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
-from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QListWidgetItem, QHBoxLayout
+from qfluentwidgets import (ListWidget, LineEdit, PushButton)
+
 from study_db_helpers import add_chapter, fetch_chapters
 
 
@@ -37,7 +35,7 @@ class ChaptersWidget(QWidget):
 
         # Input for adding a chapter
         self.input_layout = QHBoxLayout()
-        self.chapter_input = QLineEdit()
+        self.chapter_input = LineEdit()
         self.chapter_input.setPlaceholderText("Enter a chapter name...")
         self.input_layout.addWidget(self.chapter_input)
 
