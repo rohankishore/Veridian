@@ -1,83 +1,44 @@
-import sqlite3
+from PyQt6.QtWidgets import QStackedWidget, QVBoxLayout, QWidget
+from projects_widget import ProjectsWidget
+from subjects_widget import SubjectsWidget
+from chapters_widget import ChaptersWidget
 
 
-def initialize_study_db():
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
+class MainWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Study Tracker")
+        self.setMinimumSize(800, 600)
 
-    # Create tables
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS subjects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            project_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chapters (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            subject_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
-        )
-    """)
-    connection.commit()
-    connection.close()
+        # Stack to manage widgets dynamically
+        self.stack = QStackedWidget(self)
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.stack)
 
+        # Initialize Widgets
+        self.projects_widget = ProjectsWidget(self.show_subjects)
+        self.subjects_widget = SubjectsWidget(self.show_chapters, self.show_projects)
+        self.chapters_widget = ChaptersWidget(self.show_subjects)
 
-def add_project(name):
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO projects (name) VALUES (?)", (name,))
-    connection.commit()
-    connection.close()
+        # Add widgets to the stack
+        self.stack.addWidget(self.projects_widget)
+        self.stack.addWidget(self.subjects_widget)
+        self.stack.addWidget(self.chapters_widget)
 
+        # Start with the Projects widget
+        self.stack.setCurrentWidget(self.projects_widget)
 
-def fetch_projects():
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT id, name FROM projects")
-    projects = cursor.fetchall()
-    connection.close()
-    return projects
+    def show_projects(self):
+        """Show the Projects widget."""
+        self.stack.setCurrentWidget(self.projects_widget)
+        self.projects_widget.load_projects()
 
+    def show_subjects(self, project_id):
+        """Show the Subjects widget for a specific project."""
+        self.stack.setCurrentWidget(self.subjects_widget)
+        self.subjects_widget.set_project(project_id)
 
-def add_subject(project_id, name):
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO subjects (project_id, name) VALUES (?, ?)", (project_id, name))
-    connection.commit()
-    connection.close()
-
-
-def fetch_subjects(project_id):
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT id, name FROM subjects WHERE project_id = ?", (project_id,))
-    subjects = cursor.fetchall()
-    connection.close()
-    return subjects
-
-
-def add_chapter(subject_id, name):
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO chapters (subject_id, name) VALUES (?, ?)", (subject_id, name))
-    connection.commit()
-    connection.close()
-
-
-def fetch_chapters(subject_id):
-    connection = sqlite3.connect("resources/data/study_projects.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT id, name FROM chapters WHERE subject_id = ?", (subject_id,))
-    chapters = cursor.fetchall()
-    connection.close()
-    return chapters
+    def show_chapters(self, subject_id):
+        """Show the Chapters widget for a specific subject."""
+        self.stack.setCurrentWidget(self.chapters_widget)
+        self.chapters_widget.set_subject(subject_id)

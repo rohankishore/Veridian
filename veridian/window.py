@@ -13,6 +13,7 @@ from qframelesswindow import FramelessWindow, TitleBar
 
 import home
 import tasks
+import projects
 
 APP_NAME = "Veridian"
 VERSION = "1.0.0"
@@ -166,7 +167,7 @@ class Window(FramelessWindow):
         #self.musicInterface = Player.MusicPlayerWidget()
         self.homeInterface = home.DashboardWidget()
         self.habitsInterface = tasks.TasksWidget()
-        # self.cutInterface = cut.CutVideos()
+        #self.projectInterface = projects.SubjectsWidget()
         # self.captionInterface = get_captions.CaptionWidget()
         # self.settingsInterface = settings.SettingsPage()
 
