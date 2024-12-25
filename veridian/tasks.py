@@ -4,7 +4,7 @@
 import sqlite3
 
 # import qdarktheme
-from PyQt6.QtCore import Qt, QPropertyAnimation
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QListWidgetItem, QLabel, QMenu
 from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
