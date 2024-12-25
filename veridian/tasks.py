@@ -32,7 +32,7 @@ def delete_task_from_db(habit_id):
     connection.commit()
     connection.close()
 
-def fetch_habits():
+def fetch_tasks():
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name, streak, completed FROM habits")
@@ -59,7 +59,7 @@ def toggle_completion(self):
         }}
     """)
 
-def toggle_habit_completion(habit_id, completed):
+def toggle_task_completion(habit_id, completed):
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
     cursor.execute("UPDATE habits SET completed = ? WHERE id = ?", (1 if completed else 0, habit_id))
@@ -67,7 +67,7 @@ def toggle_habit_completion(habit_id, completed):
     connection.close()
 
 
-class HabitItemWidget(QWidget):
+class TaskItemWidget(QWidget):
     def __init__(self, habit_id, name, completed, toggle_completion_callback):
         super().__init__()
         self.habit_id = habit_id
@@ -106,7 +106,7 @@ class HabitItemWidget(QWidget):
         self.toggle_completion_callback(self.habit_id, self.completed)
 
 
-class HabitsWidget(QWidget):
+class TasksWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Veridian")
@@ -179,7 +179,7 @@ class HabitsWidget(QWidget):
         self.load_habits()
 
     def load_habits(self):
-        habits = fetch_habits()
+        habits = fetch_tasks()
         self.habit_list.clear()
 
         for habit in habits:
@@ -200,14 +200,14 @@ class HabitsWidget(QWidget):
             self.load_habits()
 
     def add_habit_to_list(self, habit_id, name, completed):
-        habit_widget = HabitItemWidget(habit_id, name, completed, self.toggle_habit_completion)
+        habit_widget = TaskItemWidget(habit_id, name, completed, self.toggle_habit_completion)
         habit_item = QListWidgetItem()
         habit_item.setSizeHint(habit_widget.sizeHint())
         self.habit_list.addItem(habit_item)
         self.habit_list.setItemWidget(habit_item, habit_widget)
 
     def toggle_habit_completion(self, habit_id, completed):
-        toggle_habit_completion(habit_id, completed)
+        toggle_task_completion(habit_id, completed)
         self.load_habits()
 
     def show_context_menu(self, position):

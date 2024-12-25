@@ -142,7 +142,7 @@ class Window(FramelessWindow):
         # create sub interface
         #self.musicInterface = Player.MusicPlayerWidget()
         self.homeInterface = home.DashboardWidget()
-        self.habitsInterface = tasks.HabitsWidget()
+        self.habitsInterface = tasks.TasksWidget()
         # self.cutInterface = cut.CutVideos()
         # self.captionInterface = get_captions.CaptionWidget()
         # self.settingsInterface = settings.SettingsPage()
