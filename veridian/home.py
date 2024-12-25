@@ -18,7 +18,7 @@ from matplotlib.figure import Figure
 
 # Database helper functions
 def initialize_database():
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS habits (
@@ -32,7 +32,7 @@ def initialize_database():
 
 
 def fetch_habits():
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name, streak FROM habits")
     habits = cursor.fetchall()
@@ -42,7 +42,7 @@ def fetch_habits():
 
 def fetch_statistics():
     """Fetch total tasks, completed tasks, and total streaks."""
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("SELECT COUNT(*) FROM habits")
     total_tasks = cursor.fetchone()[0]
@@ -55,7 +55,7 @@ def fetch_statistics():
 
 
 def add_habit_to_db(name):
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
     connection.commit()
@@ -63,7 +63,7 @@ def add_habit_to_db(name):
 
 
 def update_habit_streak_in_db(habit_id, new_streak):
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("UPDATE habits SET streak = ? WHERE id = ?", (new_streak, habit_id))
     connection.commit()

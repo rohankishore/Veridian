@@ -12,7 +12,7 @@ from qfluentwidgets import (LargeTitleLabel, ListWidget, LineEdit, PushButton)
 
 # Database helper functions
 def initialize_database():
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS habits (
@@ -26,14 +26,14 @@ def initialize_database():
     connection.close()
 
 def delete_task_from_db(habit_id):
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
     connection.commit()
     connection.close()
 
 def fetch_tasks():
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("SELECT id, name, streak, completed FROM habits")
     habits = cursor.fetchall()
@@ -60,7 +60,7 @@ def toggle_completion(self):
     """)
 
 def toggle_task_completion(habit_id, completed):
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
     cursor.execute("UPDATE habits SET completed = ? WHERE id = ?", (1 if completed else 0, habit_id))
     connection.commit()
@@ -134,17 +134,17 @@ class TasksWidget(QWidget):
         self.main_layout.addWidget(self.title_label)
 
         # Habit List
-        self.habit_list = ListWidget()
-        self.habit_list.setStyleSheet("background-color: #202020; color: #ffffff; border-radius: 8px;")
-        self.habit_list.setSpacing(10)
-        self.habit_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.habit_list.customContextMenuRequested.connect(self.show_context_menu)
-        self.main_layout.addWidget(self.habit_list)
+        self.tasks_list = ListWidget()
+        self.tasks_list.setStyleSheet("background-color: #202020; color: #ffffff; border-radius: 8px;")
+        self.tasks_list.setSpacing(10)
+        self.tasks_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tasks_list.customContextMenuRequested.connect(self.show_context_menu)
+        self.main_layout.addWidget(self.tasks_list)
 
         # Add Habit Section
-        self.habit_input = LineEdit()
-        self.habit_input.setPlaceholderText("Enter a new task...")
-        self.habit_input.setStyleSheet("""
+        self.tasks_input = LineEdit()
+        self.tasks_input.setPlaceholderText("Enter a new task...")
+        self.tasks_input.setStyleSheet("""
             QLineEdit {
                 background-color: #333333;
                 color: #ffffff;
@@ -156,11 +156,11 @@ class TasksWidget(QWidget):
                 border: 2px solid #ffffff;
             }
         """)
-        self.main_layout.addWidget(self.habit_input)
+        self.main_layout.addWidget(self.tasks_input)
 
-        self.add_habit_button = PushButton()
-        self.add_habit_button.setText("Add Task")
-        self.add_habit_button.setStyleSheet("""
+        self.add_task_button = PushButton()
+        self.add_task_button.setText("Add Task")
+        self.add_task_button.setStyleSheet("""
             QPushButton {
                 background-color: #68E95C;
                 color: #ffffff;
@@ -172,52 +172,52 @@ class TasksWidget(QWidget):
                 background-color: #3700b3;
             }
         """)
-        self.add_habit_button.clicked.connect(self.add_habit)
-        self.main_layout.addWidget(self.add_habit_button)
+        self.add_task_button.clicked.connect(self.add_tasks)
+        self.main_layout.addWidget(self.add_task_button)
 
         # Load habits from the database
-        self.load_habits()
+        self.load_tasks()
 
-    def load_habits(self):
+    def load_tasks(self):
         habits = fetch_tasks()
-        self.habit_list.clear()
+        self.tasks_list.clear()
 
         for habit in habits:
-            self.add_habit_to_list(habit[0], habit[1], habit[3])
+            self.add_task_to_list(habit[0], habit[1], habit[3])
 
-    def add_habit_to_db(self, name):
-        connection = sqlite3.connect("resources/data/habits.db")
+    def add_task_to_db(self, name):
+        connection = sqlite3.connect("resources/data/tasks.db")
         cursor = connection.cursor()
         cursor.execute("INSERT INTO habits (name) VALUES (?)", (name,))
         connection.commit()
         connection.close()
 
-    def add_habit(self):
-        habit_name = self.habit_input.text().strip()
+    def add_tasks(self):
+        habit_name = self.tasks_input.text().strip()
         if habit_name:
-            self.add_habit_to_db(habit_name)
-            self.habit_input.clear()
-            self.load_habits()
+            self.add_task_to_db(habit_name)
+            self.tasks_input.clear()
+            self.load_tasks()
 
-    def add_habit_to_list(self, habit_id, name, completed):
-        habit_widget = TaskItemWidget(habit_id, name, completed, self.toggle_habit_completion)
+    def add_task_to_list(self, habit_id, name, completed):
+        habit_widget = TaskItemWidget(habit_id, name, completed, self.toggle_task_completion)
         habit_item = QListWidgetItem()
         habit_item.setSizeHint(habit_widget.sizeHint())
-        self.habit_list.addItem(habit_item)
-        self.habit_list.setItemWidget(habit_item, habit_widget)
+        self.tasks_list.addItem(habit_item)
+        self.tasks_list.setItemWidget(habit_item, habit_widget)
 
-    def toggle_habit_completion(self, habit_id, completed):
+    def toggle_task_completion(self, habit_id, completed):
         toggle_task_completion(habit_id, completed)
-        self.load_habits()
+        self.load_tasks()
 
     def show_context_menu(self, position):
         # Get the habit under the cursor
-        item = self.habit_list.itemAt(position)
+        item = self.tasks_list.itemAt(position)
         if not item:
             return
 
-        habit_widget = self.habit_list.itemWidget(item)
-        if not habit_widget:
+        task_widget = self.tasks_list.itemWidget(item)
+        if not task_widget:
             return
 
         # Create the context menu
@@ -225,10 +225,10 @@ class TasksWidget(QWidget):
         delete_action = menu.addAction("Delete Task")
 
         # Handle the delete action
-        action = menu.exec(self.habit_list.mapToGlobal(position))
+        action = menu.exec(self.tasks_list.mapToGlobal(position))
         if action == delete_action:
-            self.delete_habit(habit_widget.habit_id)
+            self.delete_task(task_widget.habit_id)
 
-    def delete_habit(self, habit_id):
+    def delete_task(self, habit_id):
         delete_task_from_db(habit_id)
-        self.load_habits()
+        self.load_tasks()

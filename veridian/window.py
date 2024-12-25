@@ -33,7 +33,7 @@ VERSION = "1.0.0"
 # progressive = _themes["progressive"]
 
 def initialize_database():
-    connection = sqlite3.connect("resources/data/habits.db")
+    connection = sqlite3.connect("resources/data/tasks.db")
     cursor = connection.cursor()
 
     # Create table
