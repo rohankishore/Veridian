@@ -94,6 +94,48 @@ def initialize_study_db():
     conn.close()
 
 
+def initialize_study_db():
+    connection = sqlite3.connect("resources/data/study_projects.db")
+    cursor = connection.cursor()
+
+    # Create tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS subjects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chapters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+        )
+    """)
+
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS subtopics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chapter_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                is_complete INTEGER DEFAULT 0,
+                FOREIGN KEY (chapter_id) REFERENCES chapters (id)
+            )
+        """)
+
+    connection.commit()
+    connection.close()
+
+
 class StackedWidget(QFrame):
     """ Stacked widget """
 

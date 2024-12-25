@@ -1,9 +1,61 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem, QLineEdit
-from qfluentwidgets import ListWidget, PushButton
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem
+from qfluentwidgets import ListWidget, PushButton, LineEdit
+from study_db_helpers import fetch_chapters, update_chapter_completion, add_chapter_to_db
 
-from study_db_helpers import fetch_chapters, update_chapter_completion, add_chapter
+
+
+class ChapterItemWidget(QWidget):
+    """A widget representing a chapter item."""
+
+    def __init__(self, chapter_id, name, completed, toggle_completion_callback):
+        super().__init__()
+        self.chapter_id = chapter_id
+        self.completed = completed
+        self.toggle_completion_callback = toggle_completion_callback
+
+        # Layout
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+
+        # Chapter Name Label
+        self.name_label = QLabel(name)
+        self.name_label.setStyleSheet(f"color: {'#68E95C' if completed else '#ffffff'}; font-size: 16px;")
+        layout.addWidget(self.name_label)
+
+        # Tick Button
+        self.tick_button = PushButton("✔")
+        self.tick_button.setFixedSize(30, 30)
+        self.tick_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {'#68E95C' if completed else '#333333'};
+                color: #ffffff;
+                border-radius: 5px;
+                font-size: 14px;
+            }}
+            QPushButton:hover {{
+                background-color: #444444;
+            }}
+        """)
+        self.tick_button.clicked.connect(self.toggle_completion)
+        layout.addWidget(self.tick_button)
+
+    def toggle_completion(self):
+        self.completed = not self.completed
+        self.toggle_completion_callback(self.chapter_id, self.completed)
+
+        # Update UI appearance
+        self.name_label.setStyleSheet(f"color: {'#68E95C' if self.completed else '#ffffff'}; font-size: 16px;")
+        self.tick_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {'#68E95C' if self.completed else '#333333'};
+                color: #ffffff;
+                border-radius: 5px;
+                font-size: 14px;
+            }}
+        """)
 
 
 class ChaptersWidget(QWidget):
@@ -29,30 +81,38 @@ class ChaptersWidget(QWidget):
         self.chapters_list = ListWidget()
         self.layout.addWidget(self.chapters_list)
 
-        # Add Chapter input and button
-        self.add_chapter_layout = QHBoxLayout()
-        self.add_chapter_input = QLineEdit()
-        self.add_chapter_input.setPlaceholderText("Enter chapter name")
-        self.add_chapter_input.setFont(QFont("Poppins", 14))
-        self.add_chapter_layout.addWidget(self.add_chapter_input)
+        # Add Chapter Section
+        self.chapter_input = LineEdit()
+        self.chapter_input.setPlaceholderText("Enter a new chapter...")
+        self.chapter_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #333333;
+                color: #ffffff;
+                border: 2px solid #444444;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #ffffff;
+            }
+        """)
+        self.layout.addWidget(self.chapter_input)
 
         self.add_chapter_button = PushButton("Add Chapter")
         self.add_chapter_button.setStyleSheet("""
             QPushButton {
-                background-color: #5B84B1FF;
-                color: white;
+                background-color: #68E95C;
+                color: #ffffff;
                 border-radius: 8px;
-                padding: 8px;
-                font-size: 14px;
+                padding: 10px;
+                font-size: 16px;
             }
             QPushButton:hover {
-                background-color: #48638EFF;
+                background-color: #51b547;
             }
         """)
         self.add_chapter_button.clicked.connect(self.add_chapter)
-        self.add_chapter_layout.addWidget(self.add_chapter_button)
-
-        self.layout.addLayout(self.add_chapter_layout)
+        self.layout.addWidget(self.add_chapter_button)
 
         # Back button
         self.back_button = PushButton("Back to Subjects")
@@ -73,70 +133,36 @@ class ChaptersWidget(QWidget):
 
     def set_subject(self, subject_id):
         """Set the current subject and load its chapters."""
-        print(f"Setting subject with ID: {subject_id}")  # Debug print
         self.subject_id = subject_id
         self.load_chapters()
 
     def load_chapters(self):
         """Load all chapters for the current subject."""
-        print(f"Loading chapters for subject ID: {self.subject_id}")  # Debug print
         self.chapters_list.clear()  # Clear previous chapters
-        try:
-            chapters = fetch_chapters(self.subject_id)  # Fetch chapters from the database
-        except Exception as e:
-            print(f"Error fetching chapters: {e}")  # Debug print
-            return
-
-        print(f"Fetched chapters: {chapters}")  # Debug print
-
-        if not chapters:
-            print("No chapters found for this subject.")  # Debug print
+        chapters = fetch_chapters(self.subject_id)  # Fetch chapters from the database
 
         for chapter_id, chapter_name, is_complete in chapters:
-            print(f"Processing chapter: ID={chapter_id}, Name={chapter_name}, Completed={is_complete}")  # Debug print
+            self.add_chapter_to_list(chapter_id, chapter_name, is_complete)
 
-            chapter_layout = QHBoxLayout()
-
-            # Chapter name
-            chapter_label = QLabel(chapter_name)
-            chapter_label.setFont(QFont("Poppins", 16))
-            chapter_layout.addWidget(chapter_label)
-
-            # Checkbox for completion
-            checkbox = QCheckBox()
-            checkbox.setChecked(is_complete)  # Set checkbox based on completion
-            checkbox.toggled.connect(
-                lambda checked, cid=chapter_id: self.toggle_completion(cid, checked)
-            )  # Update completion in the database
-            chapter_layout.addWidget(checkbox)
-
-            # Create a QWidget and set the layout for this chapter
-            chapter_widget = QWidget()
-            chapter_widget.setLayout(chapter_layout)
-
-            # Create a QListWidgetItem and set the widget
-            try:
-                chapter_item = QListWidgetItem(self.chapters_list)
-                print(f"Created QListWidgetItem for chapter: {chapter_name}")  # Debug print
-                self.chapters_list.addItem(chapter_item)  # Add item first
-                self.chapters_list.setItemWidget(chapter_item, chapter_widget)  # Now set the widget to this item
-                print(f"Added chapter: {chapter_name} to the list.")  # Debug print
-            except Exception as e:
-                print(f"Error adding chapter to list: {e}")  # Debug print
-
-    def toggle_completion(self, chapter_id, is_complete):
-        """Toggle the completion status of a chapter."""
-        print(f"Toggling completion for chapter ID={chapter_id} to {is_complete}")  # Debug print
-        update_chapter_completion(chapter_id, is_complete)  # Update the database
+    def add_chapter_to_list(self, chapter_id, name, completed):
+        chapter_widget = ChapterItemWidget(chapter_id, name, completed, self.toggle_chapter_completion)
+        chapter_item = QListWidgetItem()
+        chapter_item.setSizeHint(chapter_widget.sizeHint())
+        self.chapters_list.addItem(chapter_item)
+        self.chapters_list.setItemWidget(chapter_item, chapter_widget)
 
     def add_chapter(self):
-        """Add a new chapter to the current subject."""
-        chapter_name = self.add_chapter_input.text().strip()
+        chapter_name = self.chapter_input.text().strip()
         if chapter_name:
-            print(f"Adding chapter: {chapter_name}")  # Debug print
             try:
-                add_chapter(self.subject_id, chapter_name)  # Add chapter to the database
-                self.load_chapters()  # Reload chapters to reflect the new addition
-                self.add_chapter_input.clear()  # Clear the input field
+                add_chapter_to_db(self.subject_id, chapter_name)
             except Exception as e:
-                print(f"Error adding chapter: {e}")  # Debug print
+                print(f"Error adding chapter: {e}")
+            # Clear the input and reload the chapters list
+            self.chapter_input.clear()
+            self.load_chapters()
+
+    def toggle_chapter_completion(self, chapter_id, is_complete):
+        """Toggle the completion status of a chapter."""
+        update_chapter_completion(chapter_id, is_complete)  # Update the database
+        self.load_chapters()

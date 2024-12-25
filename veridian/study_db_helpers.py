@@ -52,6 +52,17 @@ def initialize_db():
     conn.commit()
     conn.close()
 
+def add_chapter_to_db(subject_id, chapter_name):
+    """Insert a new chapter into the database."""
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO chapters (subject_id, name, is_complete)
+        VALUES (?, ?, 0)  -- Default 'is_complete' to 0 (incomplete)
+    """, (subject_id, chapter_name))
+    connection.commit()
+    connection.close()
+
 def calculate_subject_completion(subject_id):
     """Calculate the percentage of completed chapters in a subject."""
     connection = sqlite3.connect(DB_PATH)
