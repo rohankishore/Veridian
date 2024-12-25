@@ -25,7 +25,7 @@ def initialize_database():
     connection.commit()
     connection.close()
 
-def delete_habit_from_db(habit_id):
+def delete_task_from_db(habit_id):
     connection = sqlite3.connect("resources/data/habits.db")
     cursor = connection.cursor()
     cursor.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
@@ -230,5 +230,5 @@ class HabitsWidget(QWidget):
             self.delete_habit(habit_widget.habit_id)
 
     def delete_habit(self, habit_id):
-        delete_habit_from_db(habit_id)
+        delete_task_from_db(habit_id)
         self.load_habits()
