@@ -1,8 +1,8 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem
+from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QListWidgetItem, QMenu
 from qfluentwidgets import ListWidget, PushButton, LineEdit
-from study_db_helpers import fetch_chapters, update_chapter_completion, add_chapter_to_db
+from study_db_helpers import fetch_chapters, update_chapter_completion, add_chapter_to_db, delete_chapter_from_db
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
 
 
@@ -85,7 +85,8 @@ class ChaptersWidget(QWidget):
 
         # List of chapters
         self.chapters_list = ListWidget()
-        self.chapters_list.itemClicked.connect(self.open_subtopics)  # Navigate on item click
+        self.chapters_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.chapters_list.customContextMenuRequested.connect(self.show_context_menu)
         self.layout.addWidget(self.chapters_list)
 
         # Chapter input and button
@@ -117,6 +118,28 @@ class ChaptersWidget(QWidget):
             chapter_item.setSizeHint(chapter_widget.sizeHint())
             self.chapters_list.addItem(chapter_item)
             self.chapters_list.setItemWidget(chapter_item, chapter_widget)
+
+    def show_context_menu(self, position):
+        """Show a right-click context menu."""
+        item = self.chapters_list.itemAt(position)
+        if item:
+            chapter_widget = self.chapters_list.itemWidget(item)
+            context_menu = QMenu(self)
+
+            # Add "Delete" action to the context menu
+            delete_action = context_menu.addAction("Delete")
+            delete_action.triggered.connect(lambda: self.delete_chapter(chapter_widget.chapter_id))
+
+            # Show the menu at the cursor position
+            context_menu.exec(QCursor.pos())
+
+    def delete_chapter(self, chapter_id):
+        """Delete a chapter."""
+        try:
+            delete_chapter_from_db(chapter_id)
+        except Exception as e:
+            print(f"Error deleting chapter: {e}")
+        self.load_chapters()
 
     def add_chapter(self):
         """Add a new chapter."""

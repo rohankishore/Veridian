@@ -62,6 +62,21 @@ def add_chapter_to_db(subject_id, chapter_name):
     connection.commit()
     connection.close()
 
+
+def delete_chapter_from_db(chapter_id):
+    """Delete a chapter from the database."""
+    try:
+        connection = sqlite3.connect(DB_PATH)  # Replace with your database name
+        cursor = connection.cursor()
+
+        # SQL query to delete the chapter
+        cursor.execute("DELETE FROM chapters WHERE id = ?", (chapter_id,))
+
+        connection.commit()
+        connection.close()
+    except Exception as e:
+        print(f"Error deleting chapter: {e}")
+
 import sqlite3
 
 def fetch_chapters(subject_id):
