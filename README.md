@@ -15,12 +15,17 @@ To-Do
         
 ## 📺 What is Veridian? 
 
-Veridian is a simple and visually appealing desktop application built with PyQt6 to help you stay on top of your tasks.
+Veridian is a simple and visually appealing desktop application built with PyQt6 to help you stay on top of your tasks, and your projects. It can/has:
+- Track your TO-DO lists
+- Track your project progress
+- Templates for popular exams with their syllabi (BETA) (Only JEE MAIN available as of now)
 
 ## 🧩 How does it look?  
-![image](https://github.com/user-attachments/assets/fa2a951d-cd4e-4fd4-8b30-23cc53779d47)
-
-![image](https://github.com/user-attachments/assets/727c8b88-a954-4512-947b-5e7cfd7ec97c)
+![image](https://github.com/user-attachments/assets/34b4bffc-e13d-434b-a338-a4411ceb6eda)
+![image](https://github.com/user-attachments/assets/1ebf90c9-27b6-44cb-bf1a-342f0d8fb1b9)
+![image](https://github.com/user-attachments/assets/07140051-17ba-4fc5-9b20-015722520dd8)
+![image](https://github.com/user-attachments/assets/2a9f4bbb-7a7d-4026-bddc-13cbad03b937)
+![image](https://github.com/user-attachments/assets/6111d1df-e519-4f98-ab61-4b20da07e3f9)
 
 <br>
 
