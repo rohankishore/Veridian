@@ -1,11 +1,76 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidgetItem, QHBoxLayout, QMenu, QMessageBox
+from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush, QPixmap
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidgetItem, QHBoxLayout, QMenu, QMessageBox, QDialog
 from qfluentwidgets import (ListWidget, LineEdit, PushButton, MessageBox)
 
 from study_db_helpers import add_project, fetch_projects, delete_project
 
+class CardButtonDialog(QDialog):
+    def __init__(self, image_path: str, button_text: str, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Project Templates")
+        self.setFixedSize(500, 300)
+        self.setStyleSheet("background-color: white; border-radius: 10px;")
+
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#202020"))
+        gradient.setColorAt(1.0, QColor("#202020"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
+
+        # Set up the layout
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Create the card button
+        self.jee_button = PushButton()
+        self.jee_button.setFixedSize(200, 250)
+        self.jee_button.setStyleSheet("""
+            QPushButton {
+                border: 2px solid #ddd;
+                border-radius: 15px;
+                background-color: #f9f9f9;
+            }
+            QPushButton:hover {
+                background-color: #e6e6e6;
+            }
+            QPushButton:pressed {
+                background-color: #d9d9d9;
+            }
+        """)
+
+        # Add the image to the button
+        pixmap = QPixmap(image_path)
+        pixmap_label = QLabel()
+        pixmap_label.setPixmap(pixmap.scaled(180, 140, Qt.AspectRatioMode.KeepAspectRatio))
+        pixmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Add text below the image
+        text_label = QLabel(button_text)
+        text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        text_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+
+        # Stack the image and text on the button
+        button_layout = QVBoxLayout(self.jee_button)
+        button_layout.setContentsMargins(5, 5, 5, 5)
+        button_layout.addWidget(pixmap_label)
+        button_layout.addWidget(text_label)
+
+        # Add the button to the dialog layout
+        layout.addWidget(self.jee_button)
+
+        # Connect button click to a custom method
+        self.jee_button.clicked.connect(self.on_button_clicked)
+
+    def on_button_clicked(self):
+        """
+        Handle the card button click event.
+        """
+        print("Card button clicked!")
+        self.accept()
 
 class ProjectsWidget(QWidget):
     def __init__(self, switch_to_subjects_callback, back_to_main_callback=None):
@@ -44,6 +109,11 @@ class ProjectsWidget(QWidget):
         self.add_button = PushButton("Add Project")
         self.add_button.clicked.connect(self.add_project)
         self.input_layout.addWidget(self.add_button)
+
+        self.template_button = PushButton("Templates")
+        self.template_button.clicked.connect(self.template_card)
+        self.input_layout.addWidget(self.template_button)
+
         self.layout.addLayout(self.input_layout)
 
         # List of projects
@@ -73,6 +143,10 @@ class ProjectsWidget(QWidget):
 
         # Load initial projects
         self.load_projects()
+
+    def template_card(self):
+        temp_dialog = CardButtonDialog(image_path="resources/icons/NTA.png", button_text="JEE")
+        temp_dialog.exec()
 
     def load_projects(self):
         """Load all projects into the list."""
