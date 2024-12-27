@@ -6,8 +6,18 @@ from qfluentwidgets import (ListWidget, LineEdit, PushButton, MessageBox)
 
 from study_db_helpers import add_project, fetch_projects, delete_project
 
+
+def check_curr_db():
+    try:
+        with open("resources/data/current_db.txt", "r+") as db_file:
+            db_file.read()
+            db_file.close()
+    except Exception as e:
+        print(f"Error reading curr db:-  {e}")
+
+
 class CardButtonDialog(QDialog):
-    def __init__(self, image_path: str, button_text: str, parent=None):
+    def __init__(self, image_path: None, button_text: None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Project Templates")
         self.setFixedSize(500, 300)
@@ -22,10 +32,9 @@ class CardButtonDialog(QDialog):
                 """)
 
         # Set up the layout
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Create the card button
         self.jee_button = PushButton()
         self.jee_button.setFixedSize(200, 250)
         self.jee_button.setStyleSheet("""
@@ -42,25 +51,58 @@ class CardButtonDialog(QDialog):
             }
         """)
 
+        self.default_button = PushButton()
+        self.default_button.setFixedSize(200, 250)
+        self.default_button.setStyleSheet("""
+            QPushButton {
+                border: 2px solid #ddd;
+                border-radius: 15px;
+                background-color: #EEEEEE;
+            }
+            QPushButton:hover {
+                background-color: #d2d2d2;
+            }
+            QPushButton:pressed {
+                background-color: #d9d9d9;
+            }
+        """)
+
         # Add the image to the button
-        pixmap = QPixmap(image_path)
-        pixmap_label = QLabel()
-        pixmap_label.setPixmap(pixmap.scaled(180, 140, Qt.AspectRatioMode.KeepAspectRatio))
-        pixmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        jee_pixmap = QPixmap("resources/icons/NTA.png")
+        jee_pixmap_label = QLabel()
+        jee_pixmap_label.setPixmap(jee_pixmap.scaled(180, 140, Qt.AspectRatioMode.KeepAspectRatio))
+        jee_pixmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Add text below the image
-        text_label = QLabel(button_text)
-        text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        text_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        jee_text_label = QLabel("JEE")
+        jee_text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        jee_text_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         # Stack the image and text on the button
-        button_layout = QVBoxLayout(self.jee_button)
-        button_layout.setContentsMargins(5, 5, 5, 5)
-        button_layout.addWidget(pixmap_label)
-        button_layout.addWidget(text_label)
+        jee_button_layout = QVBoxLayout(self.jee_button)
+        jee_button_layout.setContentsMargins(5, 5, 5, 5)
+        jee_button_layout.addWidget(jee_pixmap_label)
+        jee_button_layout.addWidget(jee_text_label)
+
+        def_pixmap = QPixmap("resources/icons/default.png")
+        def_pixmap_label = QLabel()
+        def_pixmap_label.setPixmap(def_pixmap.scaled(180, 140, Qt.AspectRatioMode.KeepAspectRatio))
+        def_pixmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Add text below the image
+        def_text_label = QLabel("Default")
+        def_text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        def_text_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+
+        # Stack the image and text on the button
+        def_button_layout = QVBoxLayout(self.default_button)
+        def_button_layout.setContentsMargins(5, 5, 5, 5)
+        def_button_layout.addWidget(def_pixmap_label)
+        def_button_layout.addWidget(def_text_label)
 
         # Add the button to the dialog layout
         layout.addWidget(self.jee_button)
+        layout.addWidget(self.default_button)
 
         # Connect button click to a custom method
         self.jee_button.clicked.connect(self.on_jee_button_clicked)
@@ -74,6 +116,7 @@ class CardButtonDialog(QDialog):
         except Exception as e:
             print(f"Error switching to JEE database: {e}")
         self.accept()
+
 
 class ProjectsWidget(QWidget):
     def __init__(self, switch_to_subjects_callback, back_to_main_callback=None):
