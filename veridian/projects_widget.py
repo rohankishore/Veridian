@@ -63,13 +63,16 @@ class CardButtonDialog(QDialog):
         layout.addWidget(self.jee_button)
 
         # Connect button click to a custom method
-        self.jee_button.clicked.connect(self.on_button_clicked)
+        self.jee_button.clicked.connect(self.on_jee_button_clicked)
 
-    def on_button_clicked(self):
-        """
-        Handle the card button click event.
-        """
-        print("Card button clicked!")
+    def on_jee_button_clicked(self):
+        try:
+            with open("resources/data/current_db.txt", "r+") as db_file:
+                db_file.truncate(0)
+                db_file.write("resources/data/jee.db")
+                db_file.close()
+        except Exception as e:
+            print(f"Error switching to JEE database: {e}")
         self.accept()
 
 class ProjectsWidget(QWidget):

@@ -1,7 +1,9 @@
 import os
 
 # Path to the database
-DB_PATH = "resources/data/study_projects.db"
+with open("resources/data/current_db.txt") as db_file:
+    db_path = db_file.read()
+DB_PATH = db_path
 
 
 def initialize_db():
