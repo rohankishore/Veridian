@@ -1,1 +1,1 @@
-resources/data/jee.db
+resources/data/study_projects.db

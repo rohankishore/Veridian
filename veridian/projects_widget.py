@@ -10,8 +10,9 @@ from study_db_helpers import add_project, fetch_projects, delete_project
 def check_curr_db():
     try:
         with open("resources/data/current_db.txt", "r+") as db_file:
-            db_file.read()
+            path = db_file.read()
             db_file.close()
+            return path
     except Exception as e:
         print(f"Error reading curr db:-  {e}")
 
@@ -51,6 +52,9 @@ class CardButtonDialog(QDialog):
             }
         """)
 
+        if check_curr_db() == "resources/data/jee.db":
+            self.jee_button.setDisabled(True)
+
         self.default_button = PushButton()
         self.default_button.setFixedSize(200, 250)
         self.default_button.setStyleSheet("""
@@ -66,6 +70,9 @@ class CardButtonDialog(QDialog):
                 background-color: #d9d9d9;
             }
         """)
+
+        if check_curr_db() == "resources/data/study_projects.db":
+            self.default_button.setDisabled(True)
 
         # Add the image to the button
         jee_pixmap = QPixmap("resources/icons/NTA.png")
@@ -106,6 +113,7 @@ class CardButtonDialog(QDialog):
 
         # Connect button click to a custom method
         self.jee_button.clicked.connect(self.on_jee_button_clicked)
+        self.default_button.clicked.connect(self.on_default_button_clicked)
 
     def on_jee_button_clicked(self):
         try:
@@ -115,6 +123,17 @@ class CardButtonDialog(QDialog):
                 db_file.close()
         except Exception as e:
             print(f"Error switching to JEE database: {e}")
+        self.accept()
+
+    def on_default_button_clicked(self):
+        try:
+            with open("resources/data/current_db.txt", "r+") as db_file:
+                db_file.truncate(0)
+                db_file.write("resources/data/study_projects.db")
+                print("Switched to Default DB")
+                db_file.close()
+        except Exception as e:
+            print(f"Error switching to Default database: {e}")
         self.accept()
 
 
