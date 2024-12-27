@@ -81,7 +81,7 @@ class CardButtonDialog(QDialog):
         jee_pixmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Add text below the image
-        jee_text_label = QLabel("JEE")
+        jee_text_label = QLabel("JEE Main")
         jee_text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         jee_text_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
