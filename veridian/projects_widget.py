@@ -11,15 +11,15 @@ class CardButtonDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Project Templates")
         self.setFixedSize(500, 300)
-        self.setStyleSheet("background-color: white; border-radius: 10px;")
-
-        palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.0, QColor("#202020"))
-        gradient.setColorAt(1.0, QColor("#202020"))
-        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
-        self.setPalette(palette)
-        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+                    QDialog {
+                        background: qlineargradient(
+                            spread:pad, x1:0, y1:0, x2:0, y2:1, 
+                            stop:0 #202020, stop:1 #202020
+                        );
+                        border-radius: 10px;
+                    }
+                """)
 
         # Set up the layout
         layout = QVBoxLayout(self)
@@ -32,10 +32,10 @@ class CardButtonDialog(QDialog):
             QPushButton {
                 border: 2px solid #ddd;
                 border-radius: 15px;
-                background-color: #f9f9f9;
+                background-color: #EEEEEE;
             }
             QPushButton:hover {
-                background-color: #e6e6e6;
+                background-color: #d2d2d2;
             }
             QPushButton:pressed {
                 background-color: #d9d9d9;
