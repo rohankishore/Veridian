@@ -4,7 +4,7 @@
 
 # Veridian.
 
-To-Do 
+TO-DO and Project Planner
 </div>
 
 <div align="center">
