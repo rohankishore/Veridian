@@ -299,7 +299,7 @@ def delete_project(project_id):
 
 def fetch_project_completion(project_id):
     """Fetches the completion percentage of a project based on its chapters' progress."""
-    db_path = "resources/data/projects.db"  # Update this if necessary
+    db_path = "resources/data/study_projects.db"  # Update this if necessary
 
     try:
         conn = sqlite3.connect(db_path)
