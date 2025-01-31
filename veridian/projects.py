@@ -4,7 +4,7 @@ from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush
 from qfluentwidgets import LargeTitleLabel, ListWidget, LineEdit, PushButton
 from projects_widget import ProjectsWidget
 from subjects_widget import SubjectsWidget
-from veridian.chapters_widget import ChaptersWidget
+from chapters_widget import ChaptersWidget
 
 
 class MainWidget(QWidget):

@@ -7,7 +7,7 @@ from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush, QPixma
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListWidgetItem, QHBoxLayout, QMenu, QMessageBox, QDialog
 from qfluentwidgets import (ListWidget, LineEdit, PushButton, MessageBox)
 
-from study_db_helpers import add_project, fetch_projects, delete_project, fetch_project_completion
+from study_db_helpers import add_project, fetch_projects, delete_project#, fetch_project_completion
 
 
 def check_curr_db():
@@ -120,6 +120,27 @@ def migrate_data(source_db, target_db):
         source_conn.close()
         target_conn.close()
 
+def fetch_project_completion(project_id):
+    try:
+        conn = sqlite3.connect("resources/data/study_projects.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT completion FROM projects WHERE project_id=?", (project_id,))
+        completion = cursor.fetchone()
+        conn.close()
+        return completion[0] if completion else 0  # Ensure it returns 0 if no completion is found
+    except Exception as e:
+        print(f"Error fetching completion: {e}")
+        return 0  # Default value if there's an issue
+
+def update_project_completion(project_id, completion_value):
+    try:
+        conn = sqlite3.connect("resources/data/study_projects.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE projects SET completion=? WHERE project_id=?", (completion_value, project_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating completion: {e}")
 
 class CardButtonDialog(QDialog):
     def __init__(self, image_path: None, button_text: None, parent=None):

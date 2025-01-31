@@ -1,4 +1,4 @@
-from veridian import window
+import window
 # coding:utf-8
 import sys
 
