@@ -1,3 +1,6 @@
+import os
+import sqlite3
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QLinearGradient, QColor, QPalette, QBrush, QPixmap
@@ -15,6 +18,107 @@ def check_curr_db():
             return path
     except Exception as e:
         print(f"Error reading curr db:-  {e}")
+
+
+def create_new_default_project():
+    # Logic to create a fresh default project in the study_projects.db
+    add_project(db_path="resources/data/study_projects.db", project_name="New Default Project")
+
+
+from shutil import copyfile
+
+
+def migrate_tables(source_db, target_db):
+    try:
+        source_conn = sqlite3.connect(source_db)
+        target_conn = sqlite3.connect(target_db)
+
+        source_cursor = source_conn.cursor()
+        target_cursor = target_conn.cursor()
+
+        # Fetch all tables from the source database
+        source_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = source_cursor.fetchall()
+
+        for table in tables:
+            table_name = table[0]
+
+            # Check if the table already exists in the target database
+            target_cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';")
+            if target_cursor.fetchone():
+                print(f"Skipping existing table: {table_name}")
+                continue  # Skip migration if the table already exists
+
+            # Copy the table structure
+            source_cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table_name}';")
+            create_table_sql = source_cursor.fetchone()[0]
+            target_cursor.execute(create_table_sql)
+
+            # Copy the data
+            source_cursor.execute(f"SELECT * FROM {table_name};")
+            rows = source_cursor.fetchall()
+
+            if rows:
+                placeholders = ', '.join(['?' for _ in rows[0]])
+                target_cursor.executemany(f"INSERT INTO {table_name} VALUES ({placeholders});", rows)
+
+        target_conn.commit()
+        print("Tables migrated successfully!")
+
+    except Exception as e:
+        print(f"Error during migration: {e}")
+    finally:
+        source_conn.close()
+        target_conn.close()
+
+def migrate_data(source_db, target_db):
+    try:
+        source_conn = sqlite3.connect(source_db)
+        target_conn = sqlite3.connect(target_db)
+
+        source_cursor = source_conn.cursor()
+        target_cursor = target_conn.cursor()
+
+        # Attach source database to target
+        target_cursor.execute(f"ATTACH DATABASE '{source_db}' AS src_db")
+
+        # Get table names
+        source_cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = source_cursor.fetchall()
+
+        for table in tables:
+            table_name = table[0]
+
+            if table_name == "sqlite_sequence":
+                print("Skipping migration of sqlite_sequence table.")
+                continue
+
+            print(f"Migrating table: {table_name}")
+
+            # Check if the table exists in the target database
+            target_cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'")
+            if not target_cursor.fetchone():
+                print(f"Creating table: {table_name}")
+                source_cursor.execute(f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table_name}'")
+                create_table_sql = source_cursor.fetchone()[0]
+                target_cursor.execute(create_table_sql)
+
+            # Insert the data
+            source_cursor.execute(f"SELECT * FROM {table_name}")
+            rows = source_cursor.fetchall()
+            if rows:
+                placeholders = ', '.join(['?' for _ in rows[0]])
+                target_cursor.executemany(f"INSERT INTO {table_name} VALUES ({placeholders})", rows)
+                print(f"Data for {table_name} migrated successfully!")
+
+        target_conn.commit()
+
+    except Exception as e:
+        print(f"Error during migration: {e}")
+
+    finally:
+        source_conn.close()
+        target_conn.close()
 
 
 class CardButtonDialog(QDialog):
@@ -109,32 +213,21 @@ class CardButtonDialog(QDialog):
 
         # Add the button to the dialog layout
         layout.addWidget(self.jee_button)
-        layout.addWidget(self.default_button)
 
         # Connect button click to a custom method
         self.jee_button.clicked.connect(self.on_jee_button_clicked)
-        self.default_button.clicked.connect(self.on_default_button_clicked)
 
     def on_jee_button_clicked(self):
-        try:
-            with open("resources/data/current_db.txt", "r+") as db_file:
-                db_file.truncate(0)
-                db_file.write("resources/data/jee.db")
-                db_file.close()
-        except Exception as e:
-            print(f"Error switching to JEE database: {e}")
-        self.accept()
+        jee_db = "resources/data/jee.db"
+        current_db = check_curr_db()  # Get the current active database path
+        current_db = os.path.normpath(current_db)  # Normalize path
 
-    def on_default_button_clicked(self):
-        try:
-            with open("resources/data/current_db.txt", "r+") as db_file:
-                db_file.truncate(0)
-                db_file.write("resources/data/study_projects.db")
-                print("Switched to Default DB")
-                db_file.close()
-        except Exception as e:
-            print(f"Error switching to Default database: {e}")
-        self.accept()
+        if current_db != jee_db:
+            try:
+                migrate_data(jee_db, current_db)  # Migrate tables without modifying current_db.txt
+                print("Data migrated from JEE database to current database.")
+            except Exception as e:
+                print(f"Error migrating data: {e}")
 
 
 def check_curr_db():
@@ -212,13 +305,18 @@ class ProjectsWidget(QWidget):
 
         self.load_projects()
 
+    def refresh_projects(self):
+        self.load_projects()
+
     def template_card(self):
         temp_dialog = CardButtonDialog(image_path="resources/icons/NTA.png", button_text="JEE")
         temp_dialog.exec()
 
     def load_projects(self):
         self.projects_list.clear()
-        projects = fetch_projects()
+        current_db = check_curr_db()  # Get the active DB path
+        projects = fetch_projects(current_db)  # Fetch all projects
+
         for project_id, project_name in projects:
             completion = fetch_project_completion(project_id)
             item = QListWidgetItem(f"{project_name} ({completion}%)")
@@ -228,7 +326,8 @@ class ProjectsWidget(QWidget):
     def add_project(self):
         project_name = self.project_input.text().strip()
         if project_name:
-            add_project(project_name)
+            current_db = check_curr_db()  # Get the current active database
+            add_project(current_db, project_name)  # Pass the database path
             self.load_projects()
             self.project_input.clear()
 

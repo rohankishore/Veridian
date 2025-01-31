@@ -189,26 +189,31 @@ def calculate_project_completion(project_id):
     return int((completed_subjects / total_subjects) * 100) if total_subjects > 0 else 0
 
 
-def add_project(name):
-    """Add a new project to the database."""
-    conn = sqlite3.connect(DB_PATH)
+def add_project(db_path, project_name):
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    try:
-        cursor.execute("INSERT INTO Projects (name) VALUES (?)", (name,))
+    # Check if the project already exists
+    cursor.execute("SELECT COUNT(*) FROM projects WHERE name = ?", (project_name,))
+    exists = cursor.fetchone()[0]
+
+    if exists:
+        print(f"Project '{project_name}' already exists.")
+    else:
+        # Insert new project
+        cursor.execute("INSERT INTO projects (name) VALUES (?)", (project_name,))
         conn.commit()
-    except sqlite3.IntegrityError:
-        print(f"Project '{name}' already exists.")
-    finally:
-        conn.close()
+        print(f"Project '{project_name}' added successfully.")
+
+    conn.close()
 
 
-def fetch_projects():
-    """Fetch all projects from the database."""
-    conn = sqlite3.connect(DB_PATH)
+def fetch_projects(db_path):
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, name FROM Projects ORDER BY id")
+    # Fetch all project names and IDs
+    cursor.execute("SELECT id, name FROM projects")
     projects = cursor.fetchall()
 
     conn.close()

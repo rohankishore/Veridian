@@ -108,6 +108,7 @@ class PomodoroTimer(QWidget):
 
         # Hide the buttons and the focus name input when the timer starts
         self.start_button.setVisible(False)
+        self.time_selector.setVisible(False)
         self.focus_name_input.setVisible(False)
         self.stats_button.setVisible(False)
 
@@ -142,6 +143,7 @@ class PomodoroTimer(QWidget):
 
         # Show the buttons again when the timer is reset
         self.start_button.setVisible(True)
+        self.time_selector.setVisible(True)
         self.focus_name_input.setVisible(True)
         self.stats_button.setVisible(True)
 
