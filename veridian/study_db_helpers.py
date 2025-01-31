@@ -53,6 +53,7 @@ def initialize_db():
     conn.commit()
     conn.close()
 
+
 def add_chapter_to_db(subject_id, chapter_name):
     """Insert a new chapter into the database."""
     connection = sqlite3.connect(DB_PATH)
@@ -79,7 +80,9 @@ def delete_chapter_from_db(chapter_id):
     except Exception as e:
         print(f"Error deleting chapter: {e}")
 
+
 import sqlite3
+
 
 def fetch_chapters(subject_id):
     """Fetch all chapters for a given subject."""
@@ -92,6 +95,7 @@ def fetch_chapters(subject_id):
     connection.close()
     return chapters
 
+
 def add_chapter_to_db(subject_id, name):
     """Add a chapter to the database."""
     connection = sqlite3.connect(DB_PATH)
@@ -102,6 +106,7 @@ def add_chapter_to_db(subject_id, name):
     connection.commit()
     connection.close()
 
+
 def update_chapter_completion(chapter_id, is_complete):
     """Toggle completion status of a chapter."""
     connection = sqlite3.connect(DB_PATH)
@@ -111,6 +116,7 @@ def update_chapter_completion(chapter_id, is_complete):
     """, (1 if is_complete else 0, chapter_id))
     connection.commit()
     connection.close()
+
 
 def fetch_subtopics(chapter_id):
     """Fetch all subtopics for a given chapter."""
@@ -123,6 +129,7 @@ def fetch_subtopics(chapter_id):
     connection.close()
     return subtopics
 
+
 def add_subtopic_to_db(chapter_id, name):
     """Add a subtopic to the database."""
     connection = sqlite3.connect(DB_PATH)
@@ -132,6 +139,7 @@ def add_subtopic_to_db(chapter_id, name):
     """, (chapter_id, name))
     connection.commit()
     connection.close()
+
 
 def update_subtopic_completion(subtopic_id, is_complete):
     """Toggle completion status of a subtopic."""
@@ -156,6 +164,7 @@ def calculate_subject_completion(subject_id):
 
     connection.close()
     return int((completed_chapters / total_chapters) * 100) if total_chapters > 0 else 0
+
 
 def update_chapter_completion(chapter_id, is_complete):
     """Update the completion status of a chapter in the database."""
@@ -247,6 +256,7 @@ def fetch_chapters(subject_id):
     conn.close()
     return chapters
 
+
 def mark_chapter_complete(chapter_id, is_complete):
     """Mark a chapter as complete or incomplete."""
     conn = sqlite3.connect(DB_PATH)
@@ -254,6 +264,7 @@ def mark_chapter_complete(chapter_id, is_complete):
     cursor.execute("UPDATE chapters SET is_complete = ? WHERE id = ?", (1 if is_complete else 0, chapter_id))
     conn.commit()
     conn.close()
+
 
 def calculate_subject_completion(subject_id):
     """Calculate the completion percentage of a subject based on its chapters."""
@@ -270,6 +281,7 @@ def calculate_subject_completion(subject_id):
 
     return (completed_chapters / total_chapters) * 100
 
+
 def delete_project(project_id):
     """Delete a project and its associated subjects and chapters from the database."""
     conn = sqlite3.connect(DB_PATH)
@@ -284,6 +296,46 @@ def delete_project(project_id):
     conn.commit()
     conn.close()
 
+
+def fetch_project_completion(project_id):
+    """Fetches the completion percentage of a project based on its chapters' progress."""
+    db_path = "resources/data/projects.db"  # Update this if necessary
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Fetch all subject IDs under this project
+        cursor.execute("""
+            SELECT id FROM subjects WHERE project_id = ?
+        """, (project_id,))
+        subjects = cursor.fetchall()
+
+        if not subjects:
+            return 0  # No subjects → 0% completion
+
+        total_completion = 0
+        subject_count = len(subjects)
+
+        for (subject_id,) in subjects:
+            # Calculate average completion of chapters under this subject
+            cursor.execute("""
+                SELECT AVG(completion) FROM chapters WHERE subject_id = ?
+            """, (subject_id,))
+            subject_completion = cursor.fetchone()[0]
+            if subject_completion is None:
+                subject_completion = 0  # No chapters → 0% completion
+
+            total_completion += subject_completion
+
+        conn.close()
+
+        # Calculate the average subject completion
+        return round(total_completion / subject_count, 2)
+
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return 0
 
 # Initialize the database when the script is run
 initialize_db()

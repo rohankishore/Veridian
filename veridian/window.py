@@ -15,6 +15,7 @@ from qframelesswindow import FramelessWindow, TitleBar
 import home
 import tasks
 import projects
+import focus
 
 APP_NAME = "Veridian"
 VERSION = "1.0.0"
@@ -223,7 +224,7 @@ class Window(FramelessWindow):
         self.homeInterface = home.DashboardWidget()
         self.habitsInterface = tasks.TasksWidget()
         self.projectInterface = projects.MainWidget()
-        # self.captionInterface = get_captions.CaptionWidget()
+        self.focusInterface = focus.PomodoroTimer()
         # self.settingsInterface = settings.SettingsPage()
 
         # initialize layout
@@ -245,6 +246,7 @@ class Window(FramelessWindow):
         self.addSubInterface(self.homeInterface, FIF.HOME, 'Dashboard', selectedIcon=FIF.HOME)
         self.addSubInterface(self.habitsInterface, FIF.ACCEPT, 'Tasks', selectedIcon=FIF.ACCEPT_MEDIUM)
         self.addSubInterface(self.projectInterface, FIF.BOOK_SHELF, 'Projects', selectedIcon=FIF.BOOK_SHELF)
+        self.addSubInterface(self.focusInterface, QIcon("resources/icons/focus.png"), 'Focus', selectedIcon=QIcon("resources/icons/focus.png"))
 
         self.navigationBar.addItem(
             routeKey='About',
