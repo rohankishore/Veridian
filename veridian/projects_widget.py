@@ -10,7 +10,7 @@ from qfluentwidgets import (ListWidget, LineEdit, PushButton, MessageBox)
 from study_db_helpers import add_project, fetch_projects, delete_project#, fetch_project_completion
 
 
-def check_curr_db():
+def check_curr_db(): #CHECK CURR DATABASE
     try:
         with open("resources/data/current_db.txt", "r+") as db_file:
             path = db_file.read()
