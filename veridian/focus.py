@@ -54,6 +54,21 @@ class PomodoroTimer(QWidget):
         self.conn = sqlite3.connect('resources/data/focus_data.db')
         self.cursor = self.conn.cursor()
 
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS focus_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                duration INTEGER NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='focus_sessions'")
+        table_exists = self.cursor.fetchone()
+        print("Table Exists:", table_exists)
+
+
+
         # Add date column if it doesn't exist
         try:
             self.cursor.execute('''ALTER TABLE focus_sessions ADD COLUMN date TEXT''')
@@ -70,33 +85,29 @@ class PomodoroTimer(QWidget):
         )''')
         self.conn.commit()
 
-    def add_sample_data(self):
-        sample_sessions = [
-            ("Math Study", 1500, "2025-01-31T10:00:00", "2025-01-31"),
-            ("Project Work", 1800, "2025-01-31T11:00:00", "2025-01-31"),
-            ("Reading", 1200, "2025-01-31T12:00:00", "2025-01-31"),
-            ("Coding", 2000, "2025-01-31T13:00:00", "2025-01-31"),
-            ("Exercise", 900, "2025-01-31T14:00:00", "2025-01-31")
-        ]
-
-        self.cursor.executemany("INSERT INTO focus_sessions (name, duration, start_time, date) VALUES (?, ?, ?, ?)",
-                                sample_sessions)
-        self.conn.commit()
-
     def save_focus_session(self):
-        session_name = self.session_name_label.text()
-        if not session_name or session_name == "Focus":  # Handle default name
-            session_name = "Unnamed Session"
+        print("save focus session... entered")
+        if self.focus_start_time is None:
+            print("Focus start time is None. Skipping save.")
+            return
 
+        focus_name = self.focus_name_input.text().strip() or "Untitled Session"
         end_time = QTime.currentTime()
-        duration_seconds = self.focus_start_time.secsTo(end_time)
-        current_date = QDate.currentDate().toString("yyyy-MM-dd")  # Get the current date
+        actual_duration = self.focus_start_time.msecsTo(end_time) // 1000  # Convert to seconds
+        focus_date = QDate.currentDate().toString("yyyy-MM-dd")
+        start_time_str = self.focus_start_time.toString("hh:mm:ss")
 
-        # Insert session data with the date
-        self.cursor.execute("INSERT INTO focus_sessions (name, duration, start_time, date) VALUES (?, ?, ?, ?)",
-                            (session_name, duration_seconds, self.focus_start_time.toString(Qt.DateFormat.ISODate),
-                             current_date))
-        self.conn.commit()
+        try:
+            self.cursor.execute(
+                "INSERT INTO focus_sessions (name, duration, start_time, date) VALUES (?, ?, ?, ?)",
+                (focus_name, actual_duration, start_time_str, focus_date)
+            )
+            self.conn.commit()
+            print("✅ Insert Successful!")
+        except sqlite3.Error as e:
+            print("❌ Database Insert Error:", e)
+
+        print(f"DEBUG - Name: {focus_name}, Duration: {actual_duration}s, Start: {start_time_str}, Date: {focus_date}")
 
     def update_time_label(self):
         # Update the label with the current time in mm:ss format
@@ -135,11 +146,14 @@ class PomodoroTimer(QWidget):
             self.start_button.setVisible(True)  # Show start button again
             self.focus_name_input.setVisible(True)  # Show the focus name input again
             self.stats_button.setVisible(True)  # Show the statistics button again
-            self.save_focus_session()  # Save the session
+            self.save_focus_session()
+            print("🔹 Focus Start Time:", self.focus_start_time)
+            # Save the session
 
     def reset_timer(self):
         # Reset the timer based on selected time or stopwatch
         self.timer.stop()
+        self.save_focus_session()
         self.media_player.stop()
         self.session_name_label.setText("Focus")
         if self.is_stopwatch:
@@ -205,42 +219,32 @@ class PomodoroTimer(QWidget):
         self.reset_timer()
 
     def show_statistics(self):
-        # Open statistics dialog with pie chart
         dialog = QDialog(self)
         dialog.setWindowTitle("Focus Session Statistics")
-        dialog.setModal(True)  # Make the dialog modal so it blocks interaction with the main window
+        dialog.setModal(True)
         dialog_layout = QVBoxLayout(dialog)
 
-        # Fetch data from the database for all sessions
-        self.cursor.execute("SELECT name, duration, date FROM focus_sessions")
+        # Fetch data from the database
+        self.cursor.execute("SELECT name, SUM(duration) FROM focus_sessions GROUP BY name")
         data = self.cursor.fetchall()
 
         if not data:
             QMessageBox.information(self, "No Data", "No focus session data available.")
             return
 
-        # Prepare weekly data
-        weekly_data = {}
-        for name, duration, date in data:
-            week_start = QDate.fromString(date, Qt.DateFormat.ISODate).addDays(
-                -QDate.fromString(date, Qt.DateFormat.ISODate).dayOfWeek() + 1)
-            week_key = week_start.toString(Qt.DateFormat.ISODate)
+        # Extract session names and total durations (convert to minutes)
+        session_names = [row[0] for row in data]
+        durations = [row[1] / 60 for row in data]  # Convert seconds to minutes
 
-            if week_key not in weekly_data:
-                weekly_data[week_key] = 0
-            weekly_data[week_key] += duration / 60  # Convert to minutes
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.barh(session_names, durations, color="#4CAF50")  # Horizontal bar chart
+        ax.set_xlabel("Total Focus Time (minutes)")
+        ax.set_ylabel("Session Name")
+        ax.set_title("Focus Session Statistics")
+        ax.grid(axis="x", linestyle="--", alpha=0.7)
 
-        # Plot weekly data
-        weeks = list(weekly_data.keys())
-        durations = list(weekly_data.values())
-
-        fig, ax = plt.subplots()
-        ax.bar(weeks, durations)
-        ax.set_xlabel("Week")
-        ax.set_ylabel("Focus Duration (minutes)")
-        ax.set_title("Focus Duration per Week")
-
-        # Create a Matplotlib figure and canvas
+        # Create Matplotlib figure canvas
         canvas = FigureCanvas(fig)
         dialog_layout.addWidget(canvas)
 

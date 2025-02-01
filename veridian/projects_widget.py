@@ -129,7 +129,7 @@ def fetch_project_completion(project_id):
         conn.close()
         return completion[0] if completion else 0  # Ensure it returns 0 if no completion is found
     except Exception as e:
-        print(f"Error fetching completion: {e}")
+#        print(f"Error fetching completion: {e}")
         return 0  # Default value if there's an issue
 
 def update_project_completion(project_id, completion_value):
