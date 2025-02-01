@@ -358,9 +358,6 @@ class PomodoroTimer(QWidget):
             QPushButton:hover {
                 background: none;
             }
-            QPushButton:pressed {
-                background-color: #b71c1c;
-            }
         """)
         self.reset_button.clicked.connect(self.reset_timer)
         button_layout.addWidget(self.reset_button)
