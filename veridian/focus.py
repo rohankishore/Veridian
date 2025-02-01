@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime, timedelta
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QTimer, QTime, Qt, QDate, QUrl, QSize
@@ -20,6 +21,99 @@ from qfluentwidgets import (PushButton, LargeTitleLabel, ComboBox, LineEdit, Tog
 from qframelesswindow import FramelessWindow
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QComboBox, QPushButton, QDateEdit, QLabel
+from PyQt6.QtCore import QDate
+
+
+class FocusSessionFilterDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Filter Focus Sessions")
+
+        layout = QVBoxLayout()
+
+        self.filter_label = QLabel("Select Time Filter:")
+        layout.addWidget(self.filter_label)
+
+        self.filter_combo = QComboBox()
+        self.filter_combo.addItems(["All Time", "Today", "This Week", "This Month", "Custom Range"])
+        layout.addWidget(self.filter_combo)
+
+        self.start_date = QDateEdit()
+        self.start_date.setCalendarPopup(True)
+        self.start_date.setDate(QDate.currentDate())
+        self.start_date.setEnabled(False)
+        layout.addWidget(self.start_date)
+
+        self.end_date = QDateEdit()
+        self.end_date.setCalendarPopup(True)
+        self.end_date.setDate(QDate.currentDate())
+        self.end_date.setEnabled(False)
+        layout.addWidget(self.end_date)
+
+        self.apply_button = QPushButton("Apply Filter")
+        layout.addWidget(self.apply_button)
+
+        self.setLayout(layout)
+
+        # Connect signals
+        self.filter_combo.currentIndexChanged.connect(self.toggle_date_inputs)
+        self.apply_button.clicked.connect(self.accept)  # Close dialog on apply
+
+    def toggle_date_inputs(self):
+        """ Enable date inputs only for custom range selection """
+        if self.filter_combo.currentText() == "Custom Range":
+            self.start_date.setEnabled(True)
+            self.end_date.setEnabled(True)
+        else:
+            self.start_date.setEnabled(False)
+            self.end_date.setEnabled(False)
+
+    def get_selected_filter(self):
+        """ Return selected filter option and date range if applicable """
+        filter_option = self.filter_combo.currentText()
+        if filter_option == "Custom Range":
+            return filter_option, self.start_date.date().toString("yyyy-MM-dd"), self.end_date.date().toString(
+                "yyyy-MM-dd")
+        return filter_option, None, None
+
+
+def get_filtered_sessions(filter_option, start_date=None, end_date=None):
+    conn = sqlite3.connect("focus_data.db")
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM focus_sessions"
+    conditions = []
+    params = []
+
+    if filter_option == "Today":
+        today = datetime.now().strftime("%Y-%m-%d")
+        conditions.append("date = ?")
+        params.append(today)
+
+    elif filter_option == "This Week":
+        start_of_week = (datetime.now() - timedelta(days=datetime.now().weekday())).strftime("%Y-%m-%d")
+        conditions.append("date >= ?")
+        params.append(start_of_week)
+
+    elif filter_option == "This Month":
+        start_of_month = datetime.now().strftime("%Y-%m-01")
+        conditions.append("date >= ?")
+        params.append(start_of_month)
+
+    elif filter_option == "Custom Range" and start_date and end_date:
+        conditions.append("date BETWEEN ? AND ?")
+        params.extend([start_date, end_date])
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    cursor.execute(query, params)
+    results = cursor.fetchall()
+
+    conn.close()
+    return results
 
 
 class PomodoroTimer(QWidget):
@@ -49,6 +143,15 @@ class PomodoroTimer(QWidget):
         self.init_db()  # Initialize the database
         self.init_ui()
 
+    def show_filtered_sessions(self):
+        dialog = FocusSessionFilterDialog(self)
+        if dialog.exec():
+            filter_option, start_date, end_date = dialog.get_selected_filter()
+            sessions = get_filtered_sessions(filter_option, start_date, end_date)
+
+            # Display filtered sessions
+            print("Filtered Sessions:", sessions)
+
     def init_db(self):
         # Connect to SQLite database or create it if it doesn't exist
         self.conn = sqlite3.connect('resources/data/focus_data.db')
@@ -66,8 +169,6 @@ class PomodoroTimer(QWidget):
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='focus_sessions'")
         table_exists = self.cursor.fetchone()
         print("Table Exists:", table_exists)
-
-
 
         # Add date column if it doesn't exist
         try:
@@ -196,7 +297,6 @@ class PomodoroTimer(QWidget):
         if self.music_toggle.isChecked():
             self.play_music()
 
-
     def update_selected_time(self):
         # Update the selected time based on the dropdown choice
         selected_text = self.time_selector.currentText()
@@ -319,7 +419,6 @@ class PomodoroTimer(QWidget):
         scroll_layout.addWidget(self.time_selector)
         scroll_layout.addWidget(self.music_toggle)
         scroll_layout.addWidget(self.music_selector)
-
 
         # Control buttons
         button_layout = QHBoxLayout()
