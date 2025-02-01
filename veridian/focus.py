@@ -2,11 +2,11 @@ import os
 import sqlite3
 
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PyQt6.QtCore import QTimer, QTime, Qt, QDate, QUrl
-from PyQt6.QtGui import QFont, QLinearGradient, QPalette, QBrush, QColor
+from PyQt6.QtCore import QTimer, QTime, Qt, QDate, QUrl, QSize
+from PyQt6.QtGui import QFont, QLinearGradient, QPalette, QBrush, QColor, QIcon
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
                              QLineEdit, QDialog, QMessageBox, QScrollArea, QCheckBox)
-from qfluentwidgets import (PushButton, LargeTitleLabel, ComboBox, LineEdit)
+from qfluentwidgets import (PushButton, LargeTitleLabel, ComboBox, LineEdit, CheckBox)
 from qframelesswindow import FramelessWindow
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -140,6 +140,7 @@ class PomodoroTimer(QWidget):
     def reset_timer(self):
         # Reset the timer based on selected time or stopwatch
         self.timer.stop()
+        self.media_player.stop()
         self.session_name_label.setText("Focus")
         if self.is_stopwatch:
             self.time_left = QTime(0, 0, 0)  # Reset to 00:00:00 for stopwatch
@@ -158,8 +159,10 @@ class PomodoroTimer(QWidget):
         try:
             if state == Qt.CheckState.Checked.value:
                 self.music_selector.setEnabled(True)  # Enable selection
+                self.music_selector.setVisible(True)  # Make the music selector visible
             else:
                 self.music_selector.setEnabled(False)
+                self.music_selector.setVisible(False)  # Hide the music selector when unchecked
                 self.media_player.stop()  # Stop music when unchecked
         except Exception as e:
             print(f"Error toggling music: {e}")
@@ -287,16 +290,14 @@ class PomodoroTimer(QWidget):
         self.audio_output = QAudioOutput()
         self.media_player.setAudioOutput(self.audio_output)
 
-        self.music_toggle = QCheckBox()
+        self.music_toggle = CheckBox()
         self.music_toggle.setText("Background Music")
         self.music_toggle.stateChanged.connect(self.toggle_music)
-        scroll_layout.addWidget(self.music_toggle)
 
         self.music_selector = ComboBox()
         self.music_selector.addItems(self.get_music_files())
         self.music_selector.setEnabled(False)
         self.music_selector.currentIndexChanged.connect(self.change_music)
-        scroll_layout.addWidget(self.music_selector)
 
         # Timer label
         self.time_label = LargeTitleLabel(self)
@@ -311,40 +312,48 @@ class PomodoroTimer(QWidget):
         self.time_selector.currentIndexChanged.connect(self.update_selected_time)
         scroll_layout.addWidget(self.focus_name_input)
         scroll_layout.addWidget(self.time_selector)
+        scroll_layout.addWidget(self.music_toggle)
 
         # Control buttons
         button_layout = QHBoxLayout()
 
-        self.start_button = PushButton("Start Focus Now", self)
+        self.start_button = PushButton(self)
+        start_icon = QIcon("resources/icons/start.png")
+        self.start_button.setIconSize(QSize(48, 48))  # Adjust icon size as needed
+        self.start_button.setFixedSize(48, 48)
+        self.start_button.setIcon(start_icon)
         self.start_button.setStyleSheet("""
             QPushButton {
-                background-color: #68E95C;
+                background : none;
                 font-size: 18px;
-                border-radius: 12px;
+                border-radius: 24px;
                 padding: 12px 20px;
                 color: #333333;
             }
             QPushButton:hover {
-                background-color: #51b547;
-            }
-            QPushButton:pressed {
-                background-color: #3e9e3b;
-            }
+                background: none;
+                border-width: 2pc;
+                border-color : #3e9e3b;
+                }
         """)
         self.start_button.clicked.connect(self.start_timer)
         button_layout.addWidget(self.start_button)
 
-        self.reset_button = PushButton("Reset", self)
+        self.reset_button = PushButton(self)
+        reset_icon = QIcon("resources/icons/stop.png")
+        self.reset_button.setIconSize(QSize(48, 48))  # Adjust icon size as needed
+        self.reset_button.setFixedSize(50, 50)
+        self.reset_button.setIcon(reset_icon)
         self.reset_button.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background: none;
                 font-size: 18px;
                 border-radius: 12px;
                 padding: 12px 20px;
                 color: #333333;
             }
             QPushButton:hover {
-                background-color: #d32f2f;
+                background: none;
             }
             QPushButton:pressed {
                 background-color: #b71c1c;
