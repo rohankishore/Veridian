@@ -295,6 +295,7 @@ class PomodoroTimer(QWidget):
         self.music_toggle.stateChanged.connect(self.toggle_music)
 
         self.music_selector = ComboBox()
+        self.music_selector.setVisible(False)
         self.music_selector.addItems(self.get_music_files())
         self.music_selector.setEnabled(False)
         self.music_selector.currentIndexChanged.connect(self.change_music)
@@ -313,6 +314,8 @@ class PomodoroTimer(QWidget):
         scroll_layout.addWidget(self.focus_name_input)
         scroll_layout.addWidget(self.time_selector)
         scroll_layout.addWidget(self.music_toggle)
+        scroll_layout.addWidget(self.music_selector)
+
 
         # Control buttons
         button_layout = QHBoxLayout()
